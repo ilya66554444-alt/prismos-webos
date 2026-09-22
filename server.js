@@ -1,8 +1,8 @@
 /* ============================================================
-   PrismOS Server v3.1
+   PrismOS Server v3.2
    - REST API (аккаунты, файлы, настройки)
    - WebSocket (команды от админа)
-   - HTTP-прокси (обход X-Frame-Options)
+   - HTTP-прокси (обход X-Frame-Options + перезапись CSS/JS)
    - Хранение: Postgres (Render) или файлы (локально)
    ============================================================ */
 const http = require('http');
@@ -28,7 +28,7 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 console.log('[BOOT] Storage:', USE_PG ? 'Postgres' : 'files');
 
 /* ============================================================
-   STORAGE — POSTGRES
+   POSTGRES STORAGE
    ============================================================ */
 let pgPool = null;
 
@@ -36,7 +36,7 @@ async function initPg(){
   const { Pool } = require('pg');
   pgPool = new Pool({
     connectionString: DATABASE_URL,
-    ssl: DATABASE_URL.indexOf('localhost') >= 0 || DATABASE_URL.indexOf('127.0.0.1') >= 0
+    ssl: (DATABASE_URL.indexOf('localhost') >= 0 || DATABASE_URL.indexOf('127.0.0.1') >= 0)
       ? false
       : { rejectUnauthorized: false }
   });
@@ -83,7 +83,7 @@ async function pgDeleteUser(login){
 }
 async function pgAllUsers(){
   try {
-    const r = await pgPool.query('SELECT login, data FROM users ORDER BY created_at DESC');
+    const r = await pgPool.query('SELECT data FROM users ORDER BY created_at DESC');
     return r.rows.map(function(row){ return row.data; });
   } catch(e){ console.error('[pgAllUsers]', e.message); return []; }
 }
@@ -108,66 +108,66 @@ async function pgDeleteToken(token){
 }
 
 /* ============================================================
-   STORAGE — FILES (fallback)
+   FILES STORAGE (fallback)
    ============================================================ */
-let users = {};
-let tokens = {};
+let usersFS = {};
+let tokensFS = {};
 let saveTimer = null;
 
 function loadUsersFS(){
   try {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-    if (fs.existsSync(USERS_FILE)) users = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
-  } catch(e){ console.error('[loadFS]', e.message); users = {}; }
+    if (fs.existsSync(USERS_FILE)) usersFS = JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+  } catch(e){ console.error('[loadFS]', e.message); usersFS = {}; }
 }
 function saveUsersFS(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(function(){
     try {
       if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-      fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+      fs.writeFileSync(USERS_FILE, JSON.stringify(usersFS, null, 2));
     } catch(e){ console.error('[saveFS]', e.message); }
   }, 400);
 }
 
 /* ============================================================
-   STORAGE — UNIT INTERFACE (переключается автоматически)
+   STORAGE INTERFACE
    ============================================================ */
 const Storage = {
   async getUser(login){
     if (USE_PG) return await pgGetUser(login);
-    return users[login] || null;
+    return usersFS[login] || null;
   },
   async saveUser(login, data){
     if (USE_PG) return await pgSaveUser(login, data);
-    users[login] = data;
+    usersFS[login] = data;
     saveUsersFS();
     return true;
   },
   async deleteUser(login){
     if (USE_PG) return await pgDeleteUser(login);
-    delete users[login];
+    delete usersFS[login];
     saveUsersFS();
     return true;
   },
   async allUsers(){
     if (USE_PG) return await pgAllUsers();
     var arr = [];
-    for (var k in users) if (users.hasOwnProperty(k)) arr.push(users[k]);
+    for (var k in usersFS) if (usersFS.hasOwnProperty(k)) arr.push(usersFS[k]);
     return arr;
   },
   async saveToken(token, login){
     if (USE_PG) return await pgSaveToken(token, login);
-    tokens[token] = { login: login, createdAt: Date.now() };
+    tokensFS[token] = { login: login, createdAt: Date.now() };
     return true;
   },
   async getTokenLogin(token){
     if (USE_PG) return await pgGetToken(token);
-    return tokens[token] ? tokens[token].login : null;
+    return tokensFS[token] ? tokensFS[token].login : null;
   },
   async deleteToken(token){
     if (USE_PG) return await pgDeleteToken(token);
-    delete tokens[token];
+    delete tokensFS[token];
     return true;
   }
 };
@@ -214,7 +214,7 @@ function newUser(login, pass, display, avatar, wallpaper, accent, theme){
 }
 
 function readBody(req, max){
-  max = max || 5 * 1024 * 1024;
+  max = max || 8 * 1024 * 1024;
   return new Promise(function(resolve){
     var d = '';
     var killed = false;
@@ -267,7 +267,7 @@ async function getUserFromReq(req){
 }
 
 /* ============================================================
-   FS операции — серверные
+   FS операций
    ============================================================ */
 function fsParse(p){
   if (Array.isArray(p)) return p.filter(Boolean);
@@ -317,9 +317,10 @@ function fsRename(user, path, newName){
 }
 
 /* ============================================================
-   ПРОКСИ
+   PROXY
    ============================================================ */
 const PROXY_PATH = '/__proxy__';
+
 const DROP = new Set([
   'x-frame-options','content-security-policy','content-security-policy-report-only',
   'transfer-encoding','connection','keep-alive','content-encoding',
@@ -329,6 +330,7 @@ const DROP = new Set([
   'cross-origin-opener-policy','permissions-policy',
   'report-to','nel','origin-trial','expect-ct','alt-svc'
 ]);
+
 const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 64 });
 const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 64 });
 
@@ -374,7 +376,7 @@ function fetchTarget(targetUrl, method, reqHeaders, depth){
       stream.on('error', reject);
     });
     req.on('error', reject);
-    req.setTimeout(20000, function(){ req.destroy(new Error('Timeout')); });
+    req.setTimeout(25000, function(){ req.destroy(new Error('Timeout')); });
     req.end();
   });
 }
@@ -388,14 +390,14 @@ function rewriteProxyHtml(html, base){
     catch(e){ return u; }
   }
 
-  // 1. Удаляем meta-CSP (часто ломает загрузку ресурсов)
+  // Удаляем meta-CSP
   html = html.replace(/<meta\b[^>]*http-equiv\s*=\s*["']Content-Security-Policy["'][^>]*>/gi, '');
 
-  // 2. Убираем integrity — иначе браузер отклонит стили, т.к. содержимое через прокси может слегка меняться
+  // Убираем integrity / crossorigin
   html = html.replace(/\bintegrity\s*=\s*["'][^"']*["']/gi, '');
   html = html.replace(/\bcrossorigin\s*=\s*["'][^"']*["']/gi, '');
 
-  // 3. Превращаем preload-as-style в обычный stylesheet (иначе CSS не применится, если JS сломан)
+  // preload as=style → stylesheet
   html = html.replace(/<link\b([^>]*?)\/?>/gi, function(m, attrs){
     if (/\brel\s*=\s*["']preload["']/i.test(attrs) && /\bas\s*=\s*["']style["']/i.test(attrs)){
       var na = attrs
@@ -407,12 +409,12 @@ function rewriteProxyHtml(html, base){
     return m;
   });
 
-  // 4. Переписываем URL в href/src/action/poster
+  // Переписываем URL в атрибутах
   html = html.replace(/\b(href|src|action|poster)=(["'])([^"']*?)\2/gi, function(m, a, q, u){
     return a + '=' + q + proxify(u) + q;
   });
 
-  // 5. Переписываем srcset
+  // srcset
   html = html.replace(/\bsrcset=(["'])([^"']*?)\1/gi, function(m, q, set){
     var fixed = set.split(',').map(function(item){
       var parts = item.trim().split(/\s+/);
@@ -422,7 +424,6 @@ function rewriteProxyHtml(html, base){
     return 'srcset=' + q + fixed + q;
   });
 
-  // 6. Инжект base + перехват кликов
   var inject = '<base href="' + base + '"><script>(function(){' +
     'var P="' + PROXY_PATH + '";' +
     'function px(u){if(!u||u.indexOf("data:")===0||u.indexOf("javascript:")===0||u.indexOf("#")===0)return u;' +
@@ -439,10 +440,11 @@ function rewriteProxyHtml(html, base){
   return inject + html;
 }
 
-// Перезапись URL внутри CSS-файлов (чтобы картинки и шрифты тоже грузились через прокси)
 function rewriteProxyCss(css, base){
   return css.replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi, function(m, q, u){
-    if (!u || u.indexOf('data:') === 0 || u.indexOf('http') === 0 && u.indexOf('://') > 0 && u.indexOf(PROXY_PATH) === 0) return m;
+    if (!u) return m;
+    if (u.indexOf('data:') === 0) return m;
+    if (u.indexOf(PROXY_PATH) === 0) return m;
     try {
       var abs = new URL(u, base).href;
       return 'url(' + q + PROXY_PATH + '?url=' + encodeURIComponent(abs) + q + ')';
@@ -628,21 +630,38 @@ const server = http.createServer(async function(req, res){
     }
 
     /* === PROXY === */
-            var ct = r.headers['content-type'] || '';
-        if (ct.indexOf('text/html') >= 0){
-          h['content-type'] = 'text/html; charset=utf-8';
-          delete h['content-length'];
-          res.writeHead(r.status, h);
-          res.end(rewriteProxyHtml(r.body.toString('utf8'), target));
-        } else if (ct.indexOf('text/css') >= 0){
-          h['content-type'] = 'text/css; charset=utf-8';
-          delete h['content-length'];
-          res.writeHead(r.status, h);
-          res.end(rewriteProxyCss(r.body.toString('utf8'), target));
-        } else {
-          res.writeHead(r.status, h);
-          res.end(r.body);
+    if (p === PROXY_PATH){
+      var target = url.searchParams.get('url');
+      if (!target){ res.writeHead(400); return res.end('Missing url'); }
+      try {
+        var upstream = await fetchTarget(target, method, req.headers, 0);
+        var outHeaders = {};
+        for (var hk in upstream.headers){
+          if (!DROP.has(hk.toLowerCase())) outHeaders[hk] = upstream.headers[hk];
         }
+        outHeaders['access-control-allow-origin'] = '*';
+        var ct = upstream.headers['content-type'] || '';
+
+        if (ct.indexOf('text/html') >= 0){
+          outHeaders['content-type'] = 'text/html; charset=utf-8';
+          delete outHeaders['content-length'];
+          res.writeHead(upstream.status, outHeaders);
+          res.end(rewriteProxyHtml(upstream.body.toString('utf8'), target));
+        } else if (ct.indexOf('text/css') >= 0){
+          outHeaders['content-type'] = 'text/css; charset=utf-8';
+          delete outHeaders['content-length'];
+          res.writeHead(upstream.status, outHeaders);
+          res.end(rewriteProxyCss(upstream.body.toString('utf8'), target));
+        } else {
+          res.writeHead(upstream.status, outHeaders);
+          res.end(upstream.body);
+        }
+      } catch(e){
+        res.writeHead(502, { 'Content-Type':'text/plain; charset=utf-8' });
+        res.end('Proxy error: ' + e.message);
+      }
+      return;
+    }
 
     /* === STATIC === */
     var filePath = p === '/' ? '/index.html' : p;
@@ -653,8 +672,8 @@ const server = http.createServer(async function(req, res){
     res.writeHead(404); res.end('Not found');
 
   } catch(e){
-    console.error('[REQ]', p, e.message);
-    send(res, 500, { error: 'Internal error: ' + e.message });
+    console.error('[REQ]', p, e && e.message);
+    send(res, 500, { error: 'Internal error: ' + (e && e.message) });
   }
 });
 
@@ -748,7 +767,7 @@ async function start(){
       await initPg();
     } else {
       loadUsersFS();
-      console.log('[FS] users loaded:', Object.keys(users).length);
+      console.log('[FS] users loaded:', Object.keys(usersFS).length);
     }
   } catch(e){
     console.error('[BOOT] storage init failed:', e.message);
@@ -758,7 +777,7 @@ async function start(){
   server.listen(PORT, function(){
     console.log('');
     console.log('  ╔══════════════════════════════════════════╗');
-    console.log('  ║       PrismOS Server v3.1                ║');
+    console.log('  ║       PrismOS Server v3.2                ║');
     console.log('  ║       Порт: ' + String(PORT).padEnd(29) + '║');
     console.log('  ║       Storage: ' + (USE_PG ? 'Postgres' : 'files').padEnd(24) + '║');
     console.log('  ╚══════════════════════════════════════════╝');
