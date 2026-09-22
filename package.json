@@ -1,0 +1,12 @@
+{
+  "name": "prismos",
+  "version": "3.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "pg": "^8.11.5"
+  }
+}

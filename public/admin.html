@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PrismOS Admin — Control Center</title>
+<style>
+:root{
+  --accent:#7c6cf5;--accent2:#c084fc;--bg:#0a0a14;--bg2:#12121e;
+  --surface:rgba(255,255,255,.06);--surface2:rgba(255,255,255,.1);--surface3:rgba(255,255,255,.16);
+  --border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);
+  --text:#eeeef5;--text2:rgba(238,238,245,.7);--text3:rgba(238,238,245,.42);
+  --danger:#ef4444;--warn:#f59e0b;--ok:#4ade80;
+  --shadow:0 20px 60px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:14px;color:var(--text);background:var(--bg)}
+button{font-family:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font-family:inherit;color:inherit;font-size:inherit}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(140,140,160,.35);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:rgba(140,140,160,.6)}
+.hidden{display:none!important}
+
+#login{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#1a0b3d,#0a0a14 70%);z-index:9999}
+.login-card{width:min(420px,92vw);padding:44px 40px;border-radius:20px;background:rgba(20,20,32,.85);backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,.1);box-shadow:0 40px 100px rgba(0,0,0,.7);animation:pop .4s}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(20px)}}
+.login-logo{width:80px;height:80px;margin:0 auto 20px;border-radius:20px;background:conic-gradient(from 0deg,#7c6cf5,#c084fc,#ec4899,#7c6cf5);position:relative;animation:spin 8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.login-logo::after{content:'';position:absolute;inset:4px;border-radius:16px;background:radial-gradient(circle at 40% 40%,#1a1a2e,#0a0a14)}
+.login-logo::before{content:'⚙';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;z-index:2;font-size:32px}
+.login-title{font-size:24px;font-weight:600;text-align:center;margin-bottom:6px;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.login-sub{text-align:center;color:var(--text2);font-size:13px;margin-bottom:32px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.input{width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border2);background:var(--surface);color:inherit;font-size:14px;outline:none;transition:.15s}
+.input:focus{border-color:var(--accent);background:var(--surface2);box-shadow:0 0 0 4px rgba(124,108,245,.15)}
+.btn{padding:10px 20px;border-radius:10px;border:1px solid var(--border2);background:var(--surface);font-size:13.5px;font-weight:500;transition:.15s;cursor:pointer}
+.btn:hover{background:var(--surface2);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#7c6cf5,#c084fc);border:0;color:#fff;box-shadow:0 6px 20px rgba(124,108,245,.35)}
+.btn.primary:hover{box-shadow:0 8px 26px rgba(124,108,245,.5)}
+.btn.danger{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.35);color:#fca5a5}
+.btn.danger:hover{background:rgba(239,68,68,.28)}
+.btn.warn{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.35);color:#fbbf24}
+.btn.warn:hover{background:rgba(245,158,11,.28)}
+.btn.sm{padding:6px 12px;font-size:12.5px;border-radius:7px}
+.btn.lg{width:100%;padding:14px;font-size:15px}
+.login-err{color:#fca5a5;font-size:12.5px;text-align:center;min-height:18px;margin-top:8px}
+
+#panel{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:280px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sidebar-head{padding:18px 20px;border-bottom:1px solid var(--border)}
+.sidebar-head h2{font-size:15px;font-weight:600;display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-head .status{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text3);margin-top:6px}
+.sidebar-head .status .dot{width:7px;height:7px;border-radius:50%;background:var(--danger)}
+.sidebar-head .status .dot.ok{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.user-list{flex:1;overflow-y:auto;padding:12px 8px}
+.user-item{padding:12px 14px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:.12s;margin-bottom:4px}
+.user-item:hover{background:var(--surface)}
+.user-item.active{background:var(--surface2);box-shadow:inset 3px 0 0 var(--accent)}
+.user-item .u-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#7c6cf5,#c084fc);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.user-item .u-info{flex:1;min-width:0}
+.user-item .u-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.user-item .u-login{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis}
+.user-item .u-badge{font-size:10px;padding:2px 6px;border-radius:10px;background:var(--ok);color:#0a0a14;font-weight:700}
+.user-item .u-badge.offline{background:var(--text3)}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tabs{display:flex;gap:4px;padding:12px 20px 0;border-bottom:1px solid var(--border);background:var(--bg2);overflow-x:auto}
+.tab{padding:10px 20px;border:0;background:transparent;border-radius:10px 10px 0 0;font-size:13px;font-weight:500;color:var(--text2);white-space:nowrap;transition:.12s;position:relative}
+.tab:hover{color:var(--text);background:var(--surface)}
+.tab.active{color:var(--text);background:var(--bg)}
+.tab.active::after{content:'';position:absolute;bottom:-1px;left:20px;right:20px;height:2px;background:var(--accent)}
+.content{flex:1;overflow-y:auto;padding:24px 28px}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);text-align:center;gap:14px}
+.empty-state .es-icon{font-size:64px;opacity:.5}
+.empty-state .es-title{font-size:20px;font-weight:500;color:var(--text2)}
+.empty-state .es-desc{font-size:13.5px;max-width:400px;line-height:1.6}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.card h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-weight:600;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.stat{padding:16px;border-radius:12px;background:var(--surface2);border:1px solid var(--border)}
+.stat .val{font-size:24px;font-weight:600;color:var(--accent)}
+.stat .lbl{font-size:11.5px;color:var(--text2);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
+.kv{display:flex;justify-content:space-between;gap:16px;padding:8px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--text2)}
+.kv .v{font-weight:500;text-align:right;overflow:hidden;text-overflow:ellipsis;max-width:60%;white-space:nowrap}
+.wallpaper-preview{width:100%;height:120px;border-radius:10px;margin-bottom:12px;background-size:cover;background-position:center}
+
+.action-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.action-btn{padding:16px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);text-align:left;transition:.12s;display:flex;flex-direction:column;gap:8px;cursor:pointer}
+.action-btn:hover{background:var(--surface2);transform:translateY(-2px);border-color:var(--accent)}
+.action-btn .ab-ic{font-size:22px;line-height:1}
+.action-btn .ab-t{font-size:13px;font-weight:600}
+.action-btn .ab-d{font-size:11.5px;color:var(--text3);line-height:1.4}
+.action-btn.danger:hover{border-color:var(--danger);background:rgba(239,68,68,.1)}
+.action-btn.warn:hover{border-color:var(--warn);background:rgba(245,158,11,.1)}
+.action-btn.ok:hover{border-color:var(--ok);background:rgba(74,222,128,.1)}
+
+.prank-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.prank{padding:16px;border-radius:12px;background:linear-gradient(135deg,rgba(124,108,245,.15),rgba(192,132,252,.08));border:1px solid rgba(124,108,245,.25);cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:8px}
+.prank:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(124,108,245,.3);border-color:var(--accent)}
+.prank .p-ic{font-size:26px}
+.prank .p-t{font-size:13.5px;font-weight:600}
+.prank .p-d{font-size:11.5px;color:var(--text2);line-height:1.4}
+
+.editor{width:100%;min-height:300px;padding:14px;border-radius:10px;border:1px solid var(--border2);background:rgba(0,0,0,.3);color:#c8d0dc;font-family:'Courier New',monospace;font-size:12.5px;line-height:1.55;outline:none;resize:vertical}
+.editor:focus{border-color:var(--accent)}
+
+.log-list{max-height:400px;overflow-y:auto;font-family:'Courier New',monospace;font-size:12px}
+.log-item{padding:8px 12px;border-radius:8px;background:var(--surface2);margin-bottom:6px;display:flex;gap:10px;align-items:flex-start}
+.log-item .lt{color:var(--text3);flex-shrink:0;font-size:11px}
+.log-item .lm{flex:1;line-height:1.4}
+
+.toast-wrap{position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:12px 18px;border-radius:12px;background:var(--surface);backdrop-filter:blur(20px);border:1px solid var(--border2);box-shadow:0 12px 32px rgba(0,0,0,.4);font-size:13px;animation:tin .3s;pointer-events:auto;display:flex;gap:10px;align-items:center;min-width:240px}
+@keyframes tin{from{opacity:0;transform:translateX(40px)}}
+.toast.ok{border-left:3px solid var(--ok)}
+.toast.err{border-left:3px solid var(--danger)}
+.toast.warn{border-left:3px solid var(--warn)}
+
+.window-list{display:flex;flex-direction:column;gap:8px}
+.window-item{padding:12px 14px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;gap:12px}
+.window-item .wi-ic{font-size:20px}
+.window-item .wi-t{flex:1;font-size:13px;font-weight:500}
+.window-item .wi-s{font-size:11.5px;color:var(--text3)}
+
+.big-btn{width:100%;padding:20px;border-radius:14px;border:1px solid var(--border2);background:var(--surface);font-size:15px;font-weight:600;transition:.15s;display:flex;align-items:center;justify-content:center;gap:12px;cursor:pointer}
+.big-btn:hover{background:var(--surface2);transform:translateY(-2px);border-color:var(--accent)}
+.big-btn.panic{background:linear-gradient(135deg,#ef4444,#dc2626);border:0;color:#fff}
+.big-btn.panic:hover{box-shadow:0 12px 32px rgba(239,68,68,.4)}
+
+@media (max-width:800px){
+  .sidebar{width:70px}
+  .user-item .u-info,.sidebar-head h2,.sidebar-head .status{display:none}
+  .user-item{justify-content:center;padding:12px 8px}
+  .content{padding:16px}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="login-card">
+    <div class="login-logo"></div>
+    <div class="login-title">Admin Panel</div>
+    <div class="login-sub">PrismOS Control Center</div>
+    <div class="field">
+      <label>Пароль администратора</label>
+      <input class="input" id="adm-pass" type="password" placeholder="••••••••" autocomplete="off">
+    </div>
+    <button class="btn primary lg" id="adm-login">Войти</button>
+    <div class="login-err" id="adm-err"></div>
+    <div style="text-align:center;margin-top:20px;font-size:11.5px;color:var(--text3)">
+      Пароль по умолчанию: <b>admin123</b>
+    </div>
+  </div>
+</div>
+
+<div id="panel" class="hidden">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <h2>⚙️ Admin</h2>
+      <div class="status"><span class="dot" id="ws-dot"></span><span id="ws-status">Подключение…</span></div>
+    </div>
+    <div class="user-list" id="user-list"></div>
+    <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:6px">
+      <button class="btn sm" style="flex:1" id="adm-refresh">🔄 Обновить</button>
+      <button class="btn sm danger" id="adm-logout" title="Выйти">🚪</button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="tabs" id="tabs"></div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+(function(){
+'use strict';
+
+var ADMIN_PASS = '';
+var currentUser = null;
+var currentTab = 'overview';
+var users = {};
+var liveStates = {};      // login -> last state
+var logEntries = [];
+var socket = null;
+var reconnectTimer = null;
+
+function $(s, r){ return (r || document).querySelector(s); }
+function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function ce(tag, cls, html){ var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function fmtSize(n){ if (n < 1024) return n + ' Б'; if (n < 1048576) return (n/1024).toFixed(1) + ' КБ'; return (n/1048576).toFixed(1) + ' МБ'; }
+function fmtDate(ts){ if (!ts) return '—'; return new Date(ts).toLocaleString('ru-RU'); }
+
+/* ============ API ============ */
+function api(path, body){
+  return fetch(path, {
+    method: body ? 'POST' : 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(Object.assign({ pass: ADMIN_PASS }, body)) : undefined
+  }).then(function(r){
+    return r.json().catch(function(){ return {}; }).then(function(d){
+      if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+      return d;
+    });
+  });
+}
+
+/* ============ WS ============ */
+function initWS(){
+  if (socket) try { socket.close(); } catch(e){}
+  var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  var url = proto + '//' + location.host + '/ws?admin=1&token=' + encodeURIComponent(ADMIN_PASS);
+  try { socket = new WebSocket(url); } catch(e){ setStatus('err', 'Не могу подключиться'); return; }
+
+  socket.onopen = function(){ setStatus('ok', 'Подключено'); };
+  socket.onclose = function(){
+    setStatus('err', 'Отключено');
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(initWS, 3000);
+  };
+  socket.onerror = function(){ setStatus('err', 'Ошибка WS'); };
+  socket.onmessage = function(e){
+    var m;
+    try { m = JSON.parse(e.data); } catch(err){ return; }
+    if (!m || !m.type) return;
+    if (m.type === 'state'){
+      liveStates[m.user] = { at: Date.now(), data: m };
+      renderSidebar();
+      if (currentUser === m.user && currentTab === 'live') renderContent();
+    }
+    if (m.type === 'hello' || m.type === 'user-online'){
+      log(m.user + ' онлайн');
+      renderSidebar();
+    }
+    if (m.type === 'user-offline'){
+      log(m.user + ' офлайн');
+      renderSidebar();
+    }
+  };
+}
+function setStatus(state, text){
+  var dot = $('#ws-dot'), st = $('#ws-status');
+  if (!dot || !st) return;
+  dot.classList.toggle('ok', state === 'ok');
+  st.textContent = text;
+}
+function sendCommand(cmd){
+  if (!socket || socket.readyState !== 1){ toast('Нет соединения с сервером', 'err'); return false; }
+  try { socket.send(JSON.stringify(cmd)); log('→ ' + cmd.type + (cmd.user ? ' → ' + cmd.user : '')); return true; }
+  catch(e){ toast('Ошибка отправки', 'err'); return false; }
+}
+
+/* ============ TOASTS ============ */
+function toast(msg, type){
+  var wrap = $('#toasts'); if (!wrap) return;
+  var t = ce('div', 'toast ' + (type || ''));
+  t.innerHTML = '<span>' + (type === 'ok' ? '✓' : type === 'err' ? '✕' : type === 'warn' ? '⚠' : 'ℹ') + '</span><span>' + esc(msg) + '</span>';
+  wrap.appendChild(t);
+  setTimeout(function(){
+    t.style.opacity = '0'; t.style.transform = 'translateX(40px)'; t.style.transition = '.3s';
+    setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); }, 300);
+  }, 3000);
+}
+function log(msg){
+  logEntries.unshift({ at: Date.now(), msg: msg });
+  if (logEntries.length > 200) logEntries.pop();
+  if (currentTab === 'logs') renderContent();
+}
+
+/* ============ TABS ============ */
+var TABS = [
+  { id:'overview', name:'📊 Обзор' },
+  { id:'live',     name:'👁 Live' },
+  { id:'control',  name:'🎛 Управление' },
+  { id:'pranks',   name:'😂 Приколы' },
+  { id:'data',     name:'🗂 Данные' },
+  { id:'editor',   name:'✏️ Редактор' },
+  { id:'danger',   name:'☢️ Опасное' },
+  { id:'logs',     name:'📋 Логи' }
+];
+
+/* ============ RENDER ============ */
+function renderSidebar(){
+  var list = $('#user-list'); if (!list) return;
+  var arr = [];
+  for (var k in users) if (users.hasOwnProperty(k)) arr.push(users[k]);
+  arr.sort(function(a, b){ return (b.created || 0) - (a.created || 0); });
+  list.innerHTML = '';
+  if (!arr.length){
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text3);font-size:12.5px">Нет пользователей</div>';
+    return;
+  }
+  arr.forEach(function(u){
+    var isLive = liveStates[u.name] && (Date.now() - liveStates[u.name].at < 15000);
+    var item = ce('div', 'user-item' + (currentUser === u.name ? ' active' : ''));
+    item.innerHTML =
+      '<div class="u-av">' + (u.avatar || '👤') + '</div>' +
+      '<div class="u-info">' +
+        '<div class="u-name">' + esc(u.display) + '</div>' +
+        '<div class="u-login">@' + esc(u.name) + '</div>' +
+      '</div>' +
+      (isLive ? '<span class="u-badge">LIVE</span>' : '<span class="u-badge offline">OFF</span>');
+    item.onclick = function(){ currentUser = u.name; renderSidebar(); renderContent(); };
+    list.appendChild(item);
+  });
+}
+
+function renderTabs(){
+  var t = $('#tabs'); if (!t) return;
+  t.innerHTML = '';
+  TABS.forEach(function(tab){
+    var b = ce('button', 'tab' + (currentTab === tab.id ? ' active' : ''), tab.name);
+    b.onclick = function(){ currentTab = tab.id; renderTabs(); renderContent(); };
+    t.appendChild(b);
+  });
+}
+
+function renderContent(){
+  var c = $('#content'); if (!c) return;
+  c.innerHTML = '';
+  if (!currentUser){
+    c.appendChild(ce('div', 'empty-state',
+      '<div class="es-icon">👤</div>' +
+      '<div class="es-title">Выбери пользователя</div>' +
+      '<div class="es-desc">Слева список всех аккаунтов PrismOS. Кликни, чтобы открыть панель управления.</div>'));
+    return;
+  }
+  var u = users[currentUser];
+  if (!u){
+    c.appendChild(ce('div', 'empty-state', '<div class="es-icon">❓</div><div class="es-title">Не найден</div>'));
+    return;
+  }
+  if (currentTab === 'overview') renderOverview(c, u);
+  else if (currentTab === 'live') renderLive(c, u);
+  else if (currentTab === 'control') renderControl(c, u);
+  else if (currentTab === 'pranks') renderPranks(c, u);
+  else if (currentTab === 'data') renderData(c, u);
+  else if (currentTab === 'editor') renderEditor(c, u);
+  else if (currentTab === 'danger') renderDanger(c, u);
+  else if (currentTab === 'logs') renderLogs(c, u);
+}
+
+/* ============ TABS RENDER ============ */
+function renderOverview(c, u){
+  var s = u.settings || {};
+  c.innerHTML =
+    '<div class="card"><h3>Основное</h3>' +
+      '<div class="grid">' +
+        '<div class="stat"><div class="val">' + esc(u.display) + '</div><div class="lbl">Имя</div></div>' +
+        '<div class="stat"><div class="val">@' + esc(u.name) + '</div><div class="lbl">Логин</div></div>' +
+        '<div class="stat"><div class="val">' + (u.avatar || '👤') + '</div><div class="lbl">Аватар</div></div>' +
+        '<div class="stat"><div class="val">' + fmtSize(u.fsSize || 0) + '</div><div class="lbl">Размер ФС</div></div>' +
+      '</div></div>' +
+    '<div class="card"><h3>Метаданные</h3>' +
+      '<div class="kv"><span class="k">Создан</span><span class="v">' + fmtDate(u.created) + '</span></div>' +
+    '</div>' +
+    '<div class="card"><h3>Настройки</h3>' +
+      '<div class="kv"><span class="k">Тема</span><span class="v">' + (s.theme === 'dark' ? '🌙 Тёмная' : '☀️ Светлая') + '</span></div>' +
+      '<div class="kv"><span class="k">Акцент</span><span class="v"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + (s.accent || '#7c6cf5') + ';vertical-align:middle;margin-right:6px"></span>' + (s.accent || '#7c6cf5') + '</span></div>' +
+      '<div class="kv"><span class="k">Обои</span><span class="v">#' + (s.wallpaper || 0) + '</span></div>' +
+      '<div class="kv"><span class="k">Звук</span><span class="v">' + (s.sound ? '✅ Вкл' : '🔇 Выкл') + '</span></div>' +
+      '<div class="kv"><span class="k">Стикеров</span><span class="v">' + ((s.stickyNotes || []).length) + '</span></div>' +
+      '<div class="kv"><span class="k">Задач</span><span class="v">' + ((s.todos || []).length) + '</span></div>' +
+    '</div>';
+}
+
+function renderLive(c, u){
+  var state = liveStates[u.name];
+  var isLive = state && (Date.now() - state.at < 15000);
+
+  var winsHtml = '<div style="color:var(--text3);padding:20px;text-align:center;font-size:13px">Нет данных</div>';
+  if (isLive && state.data.windows && state.data.windows.length){
+    winsHtml = '<div class="window-list">' + state.data.windows.map(function(w){
+      return '<div class="window-item">' +
+        '<span class="wi-ic">' + (w.icon || '📄') + '</span>' +
+        '<span class="wi-t">' + esc(w.title || w.app) + '</span>' +
+        '<span class="wi-s">' + (w.minimized ? 'свёрнуто' : 'на экране') + '</span>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+
+  c.innerHTML =
+    '<div class="card"><h3>Статус</h3>' +
+      '<div class="kv"><span class="k">' + (isLive ? '🟢 Онлайн' : '⚫ Офлайн') + '</span>' +
+        '<span class="v">' + (state ? 'Обновлено ' + new Date(state.at).toLocaleTimeString('ru-RU') : '—') + '</span></div>' +
+      '<div class="kv"><span class="k">Активное приложение</span>' +
+        '<span class="v">' + (isLive && state.data.activeApp ? state.data.activeApp : '—') + '</span></div>' +
+      '<div class="kv"><span class="k">Разрешение</span>' +
+        '<span class="v">' + (isLive && state.data.screen ? state.data.screen : '—') + '</span></div>' +
+      '<div class="kv"><span class="k">Сессия</span>' +
+        '<span class="v">' + (isLive && state.data.sessionStart ? Math.floor((Date.now() - state.data.sessionStart) / 60000) + ' мин' : '—') + '</span></div>' +
+    '</div>' +
+    '<div class="card"><h3>Открытые окна (' + (isLive && state.data.windows ? state.data.windows.length : 0) + ')</h3>' + winsHtml + '</div>';
+}
+
+function actionBtn(ic, title, desc, action, cls){
+  return '<button class="action-btn ' + (cls || '') + '" data-action="' + action + '">' +
+    '<div class="ab-ic">' + ic + '</div>' +
+    '<div class="ab-t">' + title + '</div>' +
+    '<div class="ab-d">' + desc + '</div>' +
+  '</button>';
+}
+
+function renderControl(c, u){
+  c.innerHTML =
+    '<div class="card"><h3>Команды</h3>' +
+      '<div class="action-grid">' +
+        actionBtn('📢','Уведомление','Показать тост','notify') +
+        actionBtn('🎨','Сменить тему','Тёмная ↔ светлая','toggle-theme') +
+        actionBtn('🌈','Случайный акцент','Сменить цвет','random-accent') +
+        actionBtn('🖼️','Случайные обои','Поменять фон','random-wallpaper') +
+        actionBtn('🔊','Звук вкл/выкл','Тумблер','toggle-sound') +
+        actionBtn('🔒','Заблокировать','Экран блокировки','lock') +
+        actionBtn('🚪','Разлогинить','Выйти','logout', 'danger') +
+        actionBtn('💥','Свернуть всё','МинimizeAll','close-all', 'warn') +
+        actionBtn('🔄','Перезагрузить','Reload страницы','reload', 'warn') +
+      '</div></div>' +
+    '<div class="card"><h3>Открыть приложение</h3><div class="action-grid" id="app-grid"></div></div>';
+
+  $$('.action-btn', c).forEach(function(b){
+    b.onclick = function(){
+      var a = b.getAttribute('data-action');
+      var payload = null;
+      if (a === 'notify'){
+        payload = {
+          title: prompt('Заголовок:', 'Привет от админа') || 'Сообщение',
+          msg: prompt('Текст:', 'Как дела?') || '...',
+          icon: prompt('Иконка:', '👋') || '🔔'
+        };
+        if (!payload) return;
+        sendCommand({ type:'cmd-notify', user: u.name, payload: payload });
+        return;
+      }
+      sendCommand({ type:'cmd-' + a, user: u.name, payload: payload });
+      toast('Команда: ' + a, 'ok');
+    };
+  });
+
+  var appGrid = $('#app-grid', c);
+  var appList = [
+    ['files','📁 Файлы'],['terminal','⌨️ Терминал'],['notepad','📝 Блокнот'],
+    ['browser','🌐 Браузер'],['calc','🧮 Калькулятор'],['paint','🎨 Paint'],
+    ['snake','🐍 Змейка'],['settings','⚙️ Настройки'],['about','✨ О системе'],
+    ['photos','🖼️ Фото'],['clock','⏰ Часы'],['calendar','📅 Календарь']
+  ];
+  appList.forEach(function(pair){
+    var b = ce('button', 'action-btn');
+    b.innerHTML = '<div class="ab-ic">' + pair[1].split(' ')[0] + '</div><div class="ab-t">' + pair[1].split(' ').slice(1).join(' ') + '</div>';
+    b.onclick = function(){
+      sendCommand({ type:'cmd-open-app', user: u.name, payload: pair[0] });
+      toast('Открываю ' + pair[1], 'ok');
+    };
+    appGrid.appendChild(b);
+  });
+}
+
+function renderPranks(c, u){
+  var pranks = [
+    ['🔊','Смешной звук','Звук на устройстве','sound'],
+    ['🙃','Перевернуть экран','Rotate 180','flip'],
+    ['🎨','Инвертировать','Invert цвета','invert'],
+    ['📳','Тряска','Shake','shake'],
+    ['💬','Спам-уведомления','20 тостов','spam-notify'],
+    ['🎉','Конфетти','Взрыв эмодзи','confetti'],
+    ['🌚','Чёрный экран','Blackout','blackout'],
+    ['🎪','Хаос','Случайные эффекты','chaos'],
+    ['📵','Фейк BSOD','Синий экран','fake-bsod'],
+    ['🔤','Comic Sans','Сменить шрифт','comic-sans'],
+    ['🧊','Отзеркалить','Mirror','mirror'],
+    ['🔔','Loop-уведомления','Постоянные тосты','notify-loop'],
+    ['📸','Скриншот-шейк','Встряхнуть','screenshot-freeze']
+  ];
+  c.innerHTML =
+    '<div class="card" style="background:linear-gradient(135deg,rgba(124,108,245,.15),rgba(192,132,252,.08));border-color:rgba(124,108,245,.3)">' +
+      '<h3>😂 Панель приколов</h3>' +
+      '<div style="color:var(--text2);font-size:12.5px;margin-bottom:14px">⚡ Работает в реальном времени, если юзер онлайн</div>' +
+      '<div class="prank-grid" id="prank-grid"></div>' +
+    '</div>' +
+    '<div class="card"><h3>🚨 Ядерная кнопка</h3>' +
+      '<button class="big-btn panic" id="panic">🔥 ЗАПУСТИТЬ ВСЁ РАЗОМ</button>' +
+    '</div>' +
+    '<div class="card"><h3>📩 Кастомное сообщение</h3>' +
+      '<div class="field"><label>Текст</label><input class="input" id="custom-notify" placeholder="Привет!"></div>' +
+      '<button class="btn primary" id="send-custom">📤 Отправить</button>' +
+    '</div>';
+
+  var grid = $('#prank-grid', c);
+  pranks.forEach(function(p){
+    var b = ce('div', 'prank');
+    b.innerHTML = '<div class="p-ic">' + p[0] + '</div><div class="p-t">' + p[1] + '</div><div class="p-d">' + p[2] + '</div>';
+    b.onclick = function(){
+      sendCommand({ type:'cmd-prank', user: u.name, payload: p[3] });
+      toast('Прикол: ' + p[1], 'ok');
+    };
+    grid.appendChild(b);
+  });
+
+  $('#panic', c).onclick = function(){
+    if (!confirm('Запустить ВСЕ приколы разом?')) return;
+    pranks.forEach(function(p, i){
+      setTimeout(function(){
+        sendCommand({ type:'cmd-prank', user: u.name, payload: p[3] });
+      }, i * 200);
+    });
+    toast('🚨 ХАОС ЗАПУЩЕН', 'err');
+  };
+  $('#send-custom', c).onclick = function(){
+    var txt = $('#custom-notify', c).value.trim();
+    if (!txt) return toast('Введи текст', 'warn');
+    sendCommand({ type:'cmd-notify', user: u.name, payload: { title:'Сообщение', msg:txt, icon:'💬' } });
+    toast('Отправлено!', 'ok');
+  };
+}
+
+function renderData(c, u){
+  api('/api/admin/user', { login: u.name }).then(function(d){
+    var uu = d.user;
+    var s = uu.settings || {};
+    var files = [];
+    walkFiles(uu.fs, [], files);
+    c.innerHTML =
+      '<div class="card"><h3>📁 Файлы (' + files.length + ')</h3>' +
+        (files.length ? files.map(function(f){
+          return '<div class="kv"><span class="k">' + (f.isFolder ? '📁' : '📄') + ' ' + esc(f.path) + '</span>' +
+                 '<span class="v">' + (f.size ? fmtSize(f.size) : '') + '</span></div>';
+        }).join('') : '<div style="color:var(--text3);padding:14px;font-size:13px">Пусто</div>') +
+      '</div>' +
+      '<div class="card"><h3>📝 Стикеры (' + ((s.stickyNotes || []).length) + ')</h3>' +
+        ((s.stickyNotes || []).map(function(n){
+          return '<div class="kv"><span class="k">' + esc((n.text || '(пусто)').slice(0,60)) + '</span></div>';
+        }).join('') || '<div style="color:var(--text3);padding:14px;font-size:13px">Пусто</div>') +
+      '</div>' +
+      '<div class="card"><h3>✅ Задачи (' + ((s.todos || []).length) + ')</h3>' +
+        ((s.todos || []).map(function(t){
+          return '<div class="kv"><span class="k">' + (t.done ? '✅' : '⬜') + ' ' + esc(t.text) + '</span></div>';
+        }).join('') || '<div style="color:var(--text3);padding:14px;font-size:13px">Пусто</div>') +
+      '</div>';
+  }).catch(function(e){ c.innerHTML = '<div class="app-empty">Ошибка: ' + esc(e.message) + '</div>'; });
+}
+
+function walkFiles(node, path, out){
+  if (!node || !node.children) return;
+  for (var k in node.children){
+    if (!node.children.hasOwnProperty(k)) continue;
+    var c = node.children[k];
+    var p = path.concat(k).join('/');
+    if (c.type === 'folder'){ out.push({ path:p, isFolder:true }); walkFiles(c, path.concat(k), out); }
+    else { out.push({ path:p, isFolder:false, size:c.size }); }
+  }
+}
+
+function renderEditor(c, u){
+  api('/api/admin/user', { login: u.name }).then(function(d){
+    var json = JSON.stringify(d.user, null, 2);
+    c.innerHTML =
+      '<div class="card"><h3>✏️ Редактор JSON профиля</h3>' +
+        '<div style="color:var(--text3);font-size:12px;margin-bottom:14px">⚠️ Не сломай JSON — иначе пользователь потеряет данные</div>' +
+        '<textarea class="editor" id="raw-editor" spellcheck="false">' + esc(json) + '</textarea>' +
+        '<div style="display:flex;gap:8px;margin-top:14px">' +
+          '<button class="btn primary" id="save-json">💾 Сохранить</button>' +
+          '<button class="btn" id="reload-json">🔄 Сбросить</button>' +
+        '</div>' +
+      '</div>';
+    $('#save-json', c).onclick = function(){
+      try {
+        var val = JSON.parse($('#raw-editor', c).value);
+        api('/api/admin/user/save', { login: u.name, user: val }).then(function(){
+          toast('Сохранено', 'ok'); log('Редактирование ' + u.name); loadUsers();
+        }).catch(function(e){ toast('Ошибка: ' + e.message, 'err'); });
+      } catch(e){ toast('Ошибка JSON: ' + e.message, 'err'); }
+    };
+    $('#reload-json', c).onclick = function(){ renderContent(); };
+  }).catch(function(e){ c.innerHTML = '<div class="app-empty">Ошибка: ' + esc(e.message) + '</div>'; });
+}
+
+function renderDanger(c, u){
+  c.innerHTML =
+    '<div class="card" style="border-color:rgba(239,68,68,.35)">' +
+      '<h3>☢️ Опасная зона</h3>' +
+      '<div style="color:var(--text2);font-size:13px;margin-bottom:20px">Необратимые действия</div>' +
+      '<div class="action-grid">' +
+        '<button class="action-btn warn" id="reset-files"><div class="ab-ic">🗑️</div><div class="ab-t">Очистить файлы</div></button>' +
+        '<button class="action-btn warn" id="reset-settings"><div class="ab-ic">🎨</div><div class="ab-t">Сбросить настройки</div></button>' +
+        '<button class="action-btn danger" id="delete-user"><div class="ab-ic">❌</div><div class="ab-t">Удалить аккаунт</div></button>' +
+      '</div>' +
+    '</div>';
+
+  $('#reset-files', c).onclick = function(){
+    if (!confirm('Очистить все файлы?')) return;
+    api('/api/admin/user', { login: u.name }).then(function(d){
+      var uu = d.user;
+      uu.fs = { type:'folder', children:{}, created:Date.now(), modified:Date.now() };
+      return api('/api/admin/user/save', { login: u.name, user: uu });
+    }).then(function(){ toast('Файлы очищены', 'ok'); log('Файлы ' + u.name); });
+  };
+  $('#reset-settings', c).onclick = function(){
+    if (!confirm('Сбросить настройки?')) return;
+    api('/api/admin/user', { login: u.name }).then(function(d){
+      var uu = d.user;
+      uu.settings.wallpaper = 0; uu.settings.accent = '#7c6cf5'; uu.settings.theme = 'dark';
+      uu.settings.customWallpaper = null;
+      return api('/api/admin/user/save', { login: u.name, user: uu });
+    }).then(function(){ toast('Настройки сброшены', 'ok'); log('Настройки ' + u.name); });
+  };
+  $('#delete-user', c).onclick = function(){
+    if (!confirm('УДАЛИТЬ АККАУНТ ' + u.display + '?')) return;
+    if (!confirm('Точно?')) return;
+    api('/api/admin/user/delete', { login: u.name }).then(function(){
+      toast('Аккаунт удалён', 'err');
+      log('Удалён: ' + u.name);
+      currentUser = null;
+      loadUsers();
+      renderSidebar(); renderContent();
+    });
+  };
+}
+
+function renderLogs(c){
+  c.innerHTML =
+    '<div class="card"><h3>📋 История</h3>' +
+      (logEntries.length
+        ? '<div class="log-list">' + logEntries.map(function(l){
+            return '<div class="log-item"><span class="lt">' + new Date(l.at).toLocaleTimeString('ru-RU') + '</span><span class="lm">' + esc(l.msg) + '</span></div>';
+          }).join('') + '</div>'
+        : '<div style="color:var(--text3);padding:20px;text-align:center;font-size:13px">Пусто</div>') +
+      '<div style="margin-top:14px"><button class="btn sm danger" id="clear-logs">Очистить</button></div>' +
+    '</div>';
+  var cl = $('#clear-logs', c);
+  if (cl) cl.onclick = function(){ logEntries = []; renderContent(); };
+}
+
+/* ============ LOAD ============ */
+function loadUsers(){
+  return api('/api/admin/users').then(function(d){
+    users = {};
+    d.users.forEach(function(u){ users[u.name] = u; });
+    renderSidebar();
+    return users;
+  }).catch(function(e){
+    toast('Ошибка: ' + e.message, 'err');
+    throw e;
+  });
+}
+
+/* ============ LOGIN ============ */
+function tryLogin(){
+  var p = $('#adm-pass').value;
+  if (!p){ $('#adm-err').textContent = 'Введите пароль'; return; }
+  ADMIN_PASS = p;
+  var btn = $('#adm-login');
+  btn.disabled = true; btn.textContent = '⏳ Проверка…';
+  loadUsers().then(function(){
+    try { sessionStorage.setItem('prismos.admin.pass', p); } catch(e){}
+    showPanel();
+  }).catch(function(){
+    ADMIN_PASS = '';
+    btn.disabled = false; btn.textContent = 'Войти';
+    $('#adm-err').textContent = 'Неверный пароль';
+  });
+}
+
+function showLogin(){
+  $('#login').classList.remove('hidden');
+  $('#panel').classList.add('hidden');
+}
+function showPanel(){
+  $('#login').classList.add('hidden');
+  $('#panel').classList.remove('hidden');
+  renderTabs();
+  renderContent();
+  initWS();
+  // Обновляем список каждые 5 сек
+  setInterval(function(){ loadUsers().catch(function(){}); }, 5000);
+  // Перерисовываем sidebar для LIVE
+  setInterval(function(){ renderSidebar(); }, 3000);
+}
+
+/* ============ WIRE ============ */
+document.addEventListener('DOMContentLoaded', function(){
+  $('#adm-login').onclick = tryLogin;
+  $('#adm-pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') tryLogin(); });
+  $('#adm-refresh').onclick = function(){ loadUsers().then(function(){ toast('Обновлено', 'ok'); }); };
+  $('#adm-logout').onclick = function(){
+    if (!confirm('Выйти?')) return;
+    try { sessionStorage.removeItem('prismos.admin.pass'); } catch(e){}
+    if (socket) try { socket.close(); } catch(e){}
+    showLogin();
+  };
+
+  // Восстанавливаем пароль
+  try {
+    var saved = sessionStorage.getItem('prismos.admin.pass');
+    if (saved){ ADMIN_PASS = saved; loadUsers().then(showPanel).catch(function(){ ADMIN_PASS = ''; }); }
+  } catch(e){}
+
+  setTimeout(function(){ $('#adm-pass').focus(); }, 100);
+});
+
+console.log('%cPrismOS Admin %cv3.0',
+  'font-size:18px;font-weight:700;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;color:transparent;',
+  'font-size:13px;color:#888;');
+
+})();
+</script>
+</body>
+</html>

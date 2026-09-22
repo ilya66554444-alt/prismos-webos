@@ -1,0 +1,2964 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PrismOS 3.0</title>
+<style>
+:root{
+  --accent:#7c6cf5;--accent2:#c084fc;--bg:#0a0a14;
+  --surface:rgba(255,255,255,.06);--surface2:rgba(255,255,255,.1);--surface3:rgba(255,255,255,.16);
+  --border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);
+  --text:#eeeef5;--text2:rgba(238,238,245,.7);--text3:rgba(238,238,245,.42);
+  --radius:14px;--shadow:0 20px 50px rgba(0,0,0,.5);
+  --tb-h:52px;--blur:20px;--font-scale:1;
+}
+[data-theme="light"]{
+  --bg:#eef0f6;--surface:rgba(255,255,255,.7);--surface2:rgba(255,255,255,.85);
+  --surface3:rgba(0,0,0,.06);--border:rgba(20,20,30,.09);--border2:rgba(20,20,30,.16);
+  --text:#1a1a26;--text2:rgba(26,26,38,.68);--text3:rgba(26,26,38,.44);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden}
+body{font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:calc(14px * var(--font-scale));color:var(--text);background:var(--bg);user-select:none;-webkit-user-select:none}
+input,textarea,select{font-family:inherit;color:inherit;font-size:inherit;user-select:text;-webkit-user-select:text}
+button{font-family:inherit;color:inherit;font-size:inherit;cursor:pointer}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(140,140,160,.35);border-radius:5px;border:2px solid transparent;background-clip:content-box}
+.hidden{display:none!important}
+
+.wp-aurora{background:linear-gradient(135deg,#0f0524,#1a0b3d 25%,#2d1b5c 50%,#0f2a4a 75%,#041c3d)}
+.wp-mesh{background:linear-gradient(135deg,#667eea,#764ba2 50%,#f093fb)}
+.wp-sunset{background:linear-gradient(180deg,#1a0033,#4a1942 35%,#c74b50 70%,#ffa07a)}
+.wp-ocean{background:linear-gradient(180deg,#001a33,#003d66 40%,#0a6ca8 70%,#4eb3d3)}
+.wp-forest{background:linear-gradient(135deg,#0b2416,#1a3d28 40%,#2e5c3e 70%,#5a8c69)}
+.wp-cyber{background:linear-gradient(135deg,#0a0014,#1a0033 30%,#330066 60%,#4d0099)}
+.wp-graphite{background:linear-gradient(135deg,#16161d,#2a2a35 50%,#3d3d4a)}
+.wp-rose{background:linear-gradient(135deg,#2d0b1f,#7a1f4f 40%,#c9328e 75%,#ff9ecd)}
+.wp-mint{background:linear-gradient(135deg,#001a14,#004d3d 40%,#00a37a 75%,#66e6c2)}
+.wp-ember{background:linear-gradient(180deg,#1a0a00,#4a1a00 40%,#cc4400 75%,#ff9944)}
+.wp-lavender{background:linear-gradient(135deg,#2a1a44,#5c3d8f 45%,#a78bfa 80%,#e0d4ff)}
+.wp-slate{background:linear-gradient(135deg,#0f172a,#1e293b 40%,#334155 70%,#64748b)}
+.wp-pink{background:linear-gradient(135deg,#1a0b1f,#4a1942 40%,#c74b90 75%,#ffa0d4)}
+.wp-mono{background:#0a0a14}
+
+#boot{position:fixed;inset:0;z-index:90000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;background:radial-gradient(ellipse at center,#1a1a2e,#0a0a14 70%);transition:opacity .5s}
+#boot.out{opacity:0;pointer-events:none}
+.logo{width:88px;height:88px;border-radius:22px;background:conic-gradient(from 0deg,#7c6cf5,#c084fc,#ec4899,#7c6cf5);animation:spin 8s linear infinite;position:relative}
+.logo::after{content:'';position:absolute;inset:4px;border-radius:18px;background:radial-gradient(circle at 40% 40%,#1a1a2e,#0a0a14)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.boot-title{font-size:24px;font-weight:300;letter-spacing:.4em;text-transform:uppercase;color:#eeeef5}
+.boot-sub{font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:rgba(238,238,245,.4);margin-top:-18px}
+.boot-bar{width:220px;height:3px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
+.boot-bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c6cf5,#c084fc);animation:load 1.5s ease forwards}
+@keyframes load{to{width:100%}}
+
+#setup{position:fixed;inset:0;z-index:89000;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 80% at 50% 50%,#1a0b3d,#0a0a14 70%);padding:20px;overflow:auto}
+.setup-card{width:min(720px,100%);max-height:92vh;overflow:auto;background:rgba(20,20,32,.78);backdrop-filter:blur(36px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:40px 48px;box-shadow:0 40px 100px rgba(0,0,0,.7)}
+.progress{display:flex;gap:8px;justify-content:center;margin-bottom:28px}
+.progress span{width:32px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);transition:.3s}
+.progress span.on{background:linear-gradient(90deg,#7c6cf5,#c084fc);width:48px}
+.step{display:none}
+.step.on{display:block}
+.step h1{font-size:28px;font-weight:600;margin:0 0 10px;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.step p.lead{color:var(--text2);font-size:14.5px;margin:0 0 26px;line-height:1.6}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.input{width:100%;padding:11px 14px;border-radius:9px;border:1px solid var(--border2);background:var(--surface);color:inherit;font-size:14px;outline:none;transition:.15s}
+.input:focus{border-color:var(--accent);background:var(--surface2);box-shadow:0 0 0 4px rgba(124,108,245,.14)}
+.avatar-row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 20px}
+.avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:var(--surface);border:2px solid transparent;cursor:pointer;transition:.15s}
+.avatar:hover{background:var(--surface2);transform:scale(1.08)}
+.avatar.sel{border-color:var(--accent);box-shadow:0 0 0 4px rgba(124,108,245,.25)}
+.wp-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0 20px}
+.wp-swatch{aspect-ratio:16/10;border-radius:10px;cursor:pointer;border:2px solid transparent;transition:.15s}
+.wp-swatch:hover{transform:translateY(-3px)}
+.wp-swatch.sel{border-color:var(--accent);box-shadow:0 0 0 4px rgba(124,108,245,.22)}
+.accent-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 20px}
+.accent{width:40px;height:40px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.15s}
+.accent:hover{transform:scale(1.12)}
+.accent.sel{border-color:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.22)}
+.theme-row{display:flex;gap:10px;margin:8px 0 20px}
+.theme-opt{flex:1;padding:14px;border-radius:12px;cursor:pointer;background:var(--surface);border:2px solid transparent;transition:.15s;text-align:center}
+.theme-opt:hover{background:var(--surface2)}
+.theme-opt.sel{border-color:var(--accent);background:var(--surface2)}
+.theme-opt .ic{font-size:24px;margin-bottom:6px}
+.theme-opt .nm{font-size:12.5px;font-weight:500}
+.setup-nav{display:flex;justify-content:space-between;gap:12px;margin-top:28px}
+.btn{padding:9px 18px;border-radius:9px;border:1px solid var(--border2);background:var(--surface);color:inherit;font-size:13.5px;font-weight:500;transition:.15s;white-space:nowrap}
+.btn:hover{background:var(--surface2);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(135deg,#7c6cf5,#c084fc);border:0;color:#fff;box-shadow:0 6px 18px rgba(124,108,245,.35)}
+.btn.primary:hover{box-shadow:0 8px 24px rgba(124,108,245,.5)}
+.btn.danger{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.35);color:#fca5a5}
+.btn.danger:hover{background:rgba(239,68,68,.28)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.sm{padding:6px 12px;font-size:12.5px;border-radius:7px}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.summary{padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(124,108,245,.15),rgba(192,132,252,.1));border:1px solid rgba(124,108,245,.2);font-size:13px;line-height:1.9}
+.summary b{color:var(--accent)}
+.err-msg{color:#fca5a5;font-size:12.5px;text-align:center;min-height:18px;margin-top:8px}
+
+#lock{position:fixed;inset:0;z-index:88000;display:flex;flex-direction:column;align-items:center;justify-content:center;background-size:cover;background-position:center;transition:opacity .4s}
+#lock::before{content:'';position:absolute;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(28px)}
+#lock.out{opacity:0;pointer-events:none}
+.lock-inner{position:relative;text-align:center;color:#fff;z-index:2;padding:20px}
+.lock-time{font-size:88px;font-weight:200;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 4px 24px rgba(0,0,0,.4)}
+.lock-date{font-size:17px;opacity:.9;margin-top:8px;text-transform:capitalize}
+.lock-hint{margin-top:56px;font-size:13.5px;opacity:.85;cursor:pointer;padding:10px 22px;border-radius:22px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);transition:.2s;display:inline-block}
+.lock-hint:hover{background:rgba(255,255,255,.18);transform:translateY(-2px)}
+.lock-user{display:none;flex-direction:column;align-items:center;gap:16px;z-index:2;position:relative}
+.lock-user.on{display:flex}
+.lock-avatar{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:52px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.lock-name{font-size:24px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4)}
+.lock-pass{display:flex;gap:8px;width:290px;margin-top:6px}
+.lock-pass input{flex:1;padding:11px 16px;border-radius:22px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.14);color:#fff;font-size:14px;outline:none;text-align:center}
+.lock-pass input:focus{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.5)}
+.lock-pass button{padding:11px 20px;border-radius:22px;border:0;background:#fff;color:#1a1a2e;font-weight:600;font-size:14px}
+.lock-err{color:#ffb3b3;font-size:12.5px;height:16px;margin-top:6px;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+
+#desktop{position:fixed;inset:0;z-index:1;overflow:hidden}
+#wallpaper{position:absolute;inset:0;z-index:0;background-size:cover;background-position:center;transition:background .5s}
+#iconLayer{position:absolute;inset:0 0 var(--tb-h) 0;padding:8px}
+.dicon{position:absolute;width:92px;padding:10px 4px;border-radius:10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;text-align:center;transition:background .12s;touch-action:none;color:#fff}
+.dicon:hover{background:rgba(255,255,255,.14)}
+.dicon.sel{background:rgba(255,255,255,.22);outline:1.5px solid var(--accent)}
+.dicon .ic{font-size:36px;line-height:1;pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.35))}
+.dicon .nm{font-size:11.5px;line-height:1.3;word-break:break-word;pointer-events:none;font-weight:500;text-shadow:0 1px 3px rgba(0,0,0,.75);max-width:100%;overflow:hidden}
+#windowLayer{position:absolute;inset:0;pointer-events:none}
+#windowLayer > *{pointer-events:auto}
+#widgetLayer{position:absolute;top:20px;right:20px;display:flex;flex-direction:column;gap:12px;align-items:flex-end;pointer-events:none}
+#widgetLayer > *{pointer-events:auto}
+.widget{padding:16px 20px;border-radius:var(--radius);background:var(--surface);backdrop-filter:blur(var(--blur));border:1px solid var(--border);color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.widget.clock{text-align:right;min-width:180px}
+.widget .wt-time{font-size:40px;font-weight:200;line-height:1;font-variant-numeric:tabular-nums}
+.widget .wt-date{font-size:12px;color:var(--text2);margin-top:6px;text-transform:capitalize}
+.widget.weather{min-width:180px;background:linear-gradient(135deg,rgba(124,108,245,.28),rgba(192,132,252,.18));border-color:rgba(255,255,255,.12)}
+.widget .wg-city{font-size:12px;color:var(--text2);margin-bottom:4px}
+.widget .wg-temp{font-size:30px;font-weight:300;line-height:1}
+.widget .wg-desc{font-size:11.5px;color:var(--text2);margin-top:4px}
+
+#taskbar{position:fixed;left:50%;transform:translateX(-50%);bottom:8px;height:var(--tb-h);z-index:10000;display:flex;align-items:center;gap:8px;padding:0 12px;background:var(--surface);backdrop-filter:blur(var(--blur));border:1px solid var(--border);border-radius:26px;min-width:min(94vw,880px);justify-content:center}
+.tb-start{width:44px;height:44px;border:0;border-radius:50%;background:linear-gradient(135deg,#7c6cf5,#c084fc);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(124,108,245,.35);flex-shrink:0}
+.tb-start:hover{transform:scale(1.08)}
+.tb-start::before{content:'';width:20px;height:20px;border-radius:5px;background:radial-gradient(circle at 30% 30%,#fff,rgba(255,255,255,.7));clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%)}
+#tasks{display:flex;gap:4px;align-items:center;flex:1;justify-content:center;overflow:hidden;min-width:0}
+.tb-app{width:40px;height:40px;border:0;border-radius:11px;background:transparent;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;flex-shrink:0;color:inherit}
+.tb-app:hover{background:var(--surface2)}
+.tb-app.active{background:var(--surface3)}
+.tb-app.active::after{content:'';position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:18px;height:3px;border-radius:2px;background:linear-gradient(90deg,#7c6cf5,#c084fc)}
+.tb-app.running::before{content:'';position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--text3)}
+.tb-app.active.running::before{opacity:0}
+.tb-tray{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.tb-clock{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;height:40px;padding:0 12px;border-radius:10px;cursor:pointer;font-size:12px;line-height:1.25}
+.tb-clock:hover{background:var(--surface2)}
+.tb-clock b{font-weight:600;font-variant-numeric:tabular-nums}
+.tb-clock span{font-size:10.5px;color:var(--text2)}
+.tray-btn{width:40px;height:40px;border:0;border-radius:10px;background:transparent;font-size:15px;color:inherit;display:flex;align-items:center;justify-content:center;position:relative}
+.tray-btn:hover{background:var(--surface2)}
+.tray-btn .dot{position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;background:#ef4444}
+
+#start{position:fixed;left:50%;transform:translateX(-50%) translateY(20px) scale(.97);bottom:calc(var(--tb-h) + 18px);z-index:9999;width:680px;max-width:calc(100vw - 24px);max-height:calc(100vh - 100px);background:var(--surface);backdrop-filter:blur(var(--blur));border:1px solid var(--border2);border-radius:20px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:transform .25s,opacity .2s;display:flex;flex-direction:column;overflow:hidden}
+#start.open{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0) scale(1)}
+.sm-greet{padding:22px 24px 8px}
+.sm-greet h2{margin:0;font-size:22px;font-weight:600;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.sm-greet p{margin:4px 0 0;font-size:12.5px;color:var(--text2)}
+.sm-search{margin:12px 22px;height:44px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);padding:0 16px 0 42px;font-size:14px;color:inherit;outline:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239a9aae' stroke-width='2.2'><circle cx='11' cy='11' r='7'/><path d='m21 21-4.35-4.35'/></svg>");background-repeat:no-repeat;background-position:14px center}
+.sm-search:focus{border-color:var(--accent)}
+.sm-scroll{flex:1;overflow-y:auto;padding:4px 22px 16px}
+.sm-sec-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-weight:600;margin:0 0 12px}
+.sm-apps{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:20px}
+.sm-app{padding:14px 6px;border:0;background:transparent;border-radius:12px;color:inherit;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;transition:.14s}
+.sm-app:hover{background:var(--surface2)}
+.sm-app .em{font-size:30px;line-height:1}
+.sm-app .lb{font-size:11px;font-weight:500;line-height:1.25;max-width:100%;overflow:hidden}
+.sm-footer{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-top:1px solid var(--border);background:var(--surface2);gap:12px}
+.sm-user{display:flex;align-items:center;gap:12px;padding:6px 12px 6px 6px;border-radius:10px;cursor:pointer}
+.sm-user:hover{background:var(--surface3)}
+.sm-user .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7c6cf5,#c084fc);display:flex;align-items:center;justify-content:center;font-size:18px}
+.sm-user .nm{font-size:13px;font-weight:600}
+.sm-user .sub{font-size:11px;color:var(--text2)}
+.sm-actions{display:flex;gap:6px}
+
+.panel{position:fixed;z-index:9998;background:var(--surface);backdrop-filter:blur(var(--blur));border:1px solid var(--border2);border-radius:20px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.22s;display:flex;flex-direction:column;overflow:hidden}
+.panel.open{opacity:1;pointer-events:auto;transform:none!important}
+#quick{right:12px;bottom:calc(var(--tb-h) + 20px);width:360px;max-width:calc(100vw - 24px);padding:18px;gap:12px;transform:translateY(20px) scale(.96)}
+.qp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.qp-tile{padding:14px 8px;border-radius:12px;background:var(--surface2);border:1px solid transparent;color:inherit;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:11.5px;text-align:center;transition:.15s}
+.qp-tile:hover{background:var(--surface3)}
+.qp-tile.on{background:linear-gradient(135deg,#7c6cf5,#c084fc);color:#fff;border-color:transparent}
+.qp-tile .qp-ic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--surface)}
+.qp-tile.on .qp-ic{background:rgba(255,255,255,.22)}
+.qp-slider{display:flex;align-items:center;gap:12px;padding:6px 4px}
+.qp-slider .ic{font-size:16px;width:22px;text-align:center;opacity:.7}
+.qp-slider input[type=range]{flex:1;height:6px;-webkit-appearance:none;background:var(--surface3);border-radius:3px;outline:none}
+.qp-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;cursor:pointer}
+.qp-footer{display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border);font-size:12.5px;color:var(--text2)}
+.qp-footer a{color:var(--accent);cursor:pointer}
+#notif{right:12px;bottom:calc(var(--tb-h) + 20px);width:400px;max-width:calc(100vw - 24px);max-height:calc(100vh - var(--tb-h) - 40px);transform:translateY(20px) scale(.96)}
+.np-head{padding:18px 22px 12px;display:flex;justify-content:space-between;border-bottom:1px solid var(--border)}
+.np-head h3{margin:0;font-size:15px;font-weight:600}
+.np-head a{font-size:12px;color:var(--accent);cursor:pointer}
+.np-body{flex:1;overflow-y:auto;padding:14px 22px}
+.np-empty{padding:40px 20px;text-align:center;color:var(--text3);font-size:13px}
+.np-item{padding:12px 14px;border-radius:12px;background:var(--surface2);margin-bottom:8px;display:flex;gap:12px}
+.np-item .i-ic{font-size:20px}
+.np-item .i-t{font-size:13px;font-weight:600;margin-bottom:2px}
+.np-item .i-m{font-size:12px;color:var(--text2)}
+
+#ctx{position:fixed;z-index:100002;min-width:220px;padding:6px;background:var(--surface);backdrop-filter:blur(var(--blur));border:1px solid var(--border2);border-radius:12px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transform:scale(.94);transition:.12s;transform-origin:top left}
+#ctx.open{opacity:1;pointer-events:auto;transform:scale(1)}
+.ctx-item{padding:9px 12px;border-radius:8px;font-size:13px;display:flex;align-items:center;gap:12px;transition:.1s;cursor:pointer}
+.ctx-item:hover{background:var(--accent);color:#fff}
+.ctx-item .ic{width:18px;text-align:center;font-size:14px}
+.ctx-sep{height:1px;background:var(--border);margin:5px 8px}
+
+#toasts{position:fixed;right:12px;bottom:calc(var(--tb-h) + 20px);z-index:99997;display:flex;flex-direction:column-reverse;gap:8px;max-width:380px;pointer-events:none}
+.toast{background:var(--surface);backdrop-filter:blur(var(--blur));border:1px solid var(--border2);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);display:flex;gap:12px;pointer-events:auto;animation:tin .3s}
+@keyframes tin{from{opacity:0;transform:translateX(40px)}}
+.toast.out{animation:tout .22s forwards}
+@keyframes tout{to{opacity:0;transform:translateX(40px)}}
+.toast .t-ic{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;background:linear-gradient(135deg,#7c6cf5,#c084fc);color:#fff}
+.toast .t-body{flex:1;min-width:0}
+.toast .t-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.toast .t-msg{font-size:12.5px;color:var(--text2);line-height:1.4;word-wrap:break-word}
+.toast .t-close{border:0;background:transparent;color:inherit;padding:2px 6px;border-radius:5px;font-size:12px;opacity:.5;cursor:pointer}
+.toast .t-close:hover{opacity:1;background:var(--surface3)}
+
+.window{position:absolute;display:flex;flex-direction:column;background:var(--surface);backdrop-filter:blur(var(--blur));border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;min-width:300px;min-height:180px;animation:winIn .2s}
+@keyframes winIn{from{opacity:0;transform:scale(.94)}}
+.window.animating{transition:left .25s,top .25s,width .25s,height .25s}
+.window.maximized{border-radius:0}
+.window.focused{box-shadow:0 28px 70px rgba(0,0,0,.65)}
+.window.closing{animation:winOut .15s forwards;pointer-events:none}
+@keyframes winOut{to{opacity:0;transform:scale(.94)}}
+.window.minimizing{animation:winMin .18s forwards;pointer-events:none}
+@keyframes winMin{to{opacity:0;transform:scale(.85) translateY(50px)}}
+.titlebar{height:40px;flex-shrink:0;display:flex;align-items:center;padding:0 6px 0 14px;touch-action:none;cursor:default}
+.win-title{flex:1;display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:500;overflow:hidden;white-space:nowrap;min-width:0}
+.win-title .wt-ic{font-size:15px;line-height:1;flex-shrink:0}
+.win-title .wt-txt{overflow:hidden;text-overflow:ellipsis}
+.win-btns{display:flex;gap:2px;flex-shrink:0}
+.win-btn{width:36px;height:28px;border:0;background:transparent;border-radius:7px;cursor:pointer;opacity:.75;display:flex;align-items:center;justify-content:center;font-size:14px}
+.win-btn:hover{background:var(--surface2);opacity:1}
+.win-btn.close:hover{background:#ef4444;color:#fff}
+.win-btn svg{width:10px;height:10px}
+.win-content{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column;min-height:0}
+.resizer{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;z-index:5;touch-action:none}
+.resizer::after{content:'';position:absolute;right:4px;bottom:4px;width:8px;height:8px;border-right:2px solid var(--text3);border-bottom:2px solid var(--text3);border-radius:0 0 3px 0}
+.window.maximized .resizer{display:none}
+
+.app{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;font-size:13.5px}
+.app-toolbar{display:flex;align-items:center;gap:6px;padding:8px 12px;flex-shrink:0;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.app-toolbar .spacer{flex:1}
+.app-empty{padding:50px 20px;text-align:center;color:var(--text3);font-size:13px}
+.icon-btn{width:32px;height:32px;border:0;border-radius:8px;background:transparent;cursor:pointer;color:inherit;font-size:15px;display:flex;align-items:center;justify-content:center;transition:.12s}
+.icon-btn:hover{background:var(--surface2)}
+
+.files{display:flex;flex-direction:row;flex:1;min-height:0}
+.files-side{width:200px;flex-shrink:0;padding:12px 8px;overflow-y:auto;background:var(--surface2);border-right:1px solid var(--border)}
+.side-item{padding:8px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:10px;font-size:12.5px;transition:.1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-item:hover{background:var(--surface2)}
+.side-item.active{background:var(--surface3);font-weight:500}
+.side-item .si-ic{font-size:15px;flex-shrink:0}
+.files-main{flex:1;overflow-y:auto;padding:14px;min-width:0}
+.crumbs{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:14px;font-size:12.5px}
+.crumbs span{cursor:pointer;padding:3px 8px;border-radius:6px;transition:.1s}
+.crumbs span:hover{background:var(--surface2)}
+.crumbs .sep{opacity:.4;cursor:default;padding:3px 0}
+.crumbs .sep:hover{background:transparent}
+.grid-files{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:4px}
+.file-card{padding:14px 8px;border-radius:10px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.12s;border:1.5px solid transparent}
+.file-card:hover{background:var(--surface2)}
+.file-card.sel{background:var(--surface3);border-color:var(--accent)}
+.file-card .fc-ic{font-size:40px;line-height:1}
+.file-card .fc-nm{font-size:11.5px;line-height:1.3;max-width:100%;overflow:hidden;word-break:break-word}
+
+.terminal{background:rgba(6,8,12,.96);color:#c8d0dc;padding:14px;font-family:'Courier New',monospace;font-size:13px;display:flex;flex-direction:column;flex:1;min-height:0}
+.term-out{flex:1;overflow-y:auto;white-space:pre-wrap;word-break:break-word;line-height:1.55}
+.term-out .accent{color:#c084fc}
+.term-out .ok{color:#4ade80}
+.term-out .err{color:#f87171}
+.term-out .dim{color:#6b7280}
+.term-line{display:flex;gap:8px;align-items:center;margin-top:6px;flex-shrink:0}
+.term-prompt{color:#c084fc;white-space:nowrap;font-weight:500}
+.term-input{flex:1;background:transparent;border:0;outline:0;color:inherit;font-family:inherit;font-size:inherit;padding:0}
+
+.notepad-area{flex:1;width:100%;resize:none;border:0;outline:0;background:transparent;color:inherit;padding:20px 24px;font-family:'Courier New',monospace;font-size:14px;line-height:1.7}
+
+.calc{padding:12px;gap:10px}
+.calc-display{padding:18px 16px;border-radius:12px;background:var(--surface2);text-align:right;overflow:hidden}
+.calc-value{font-size:38px;font-weight:300;font-variant-numeric:tabular-nums;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.calc-pad{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;min-height:0}
+.calc-btn{border:0;border-radius:11px;background:var(--surface2);font-size:18px;cursor:pointer;transition:.12s;color:inherit;font-weight:500}
+.calc-btn:hover{background:var(--surface3)}
+.calc-btn.op{background:rgba(124,108,245,.22);color:#c084fc}
+.calc-btn.eq{background:linear-gradient(135deg,#7c6cf5,#c084fc);color:#fff}
+.calc-btn.fn{color:var(--accent);font-size:15px}
+
+.settings{display:flex;flex:1;min-height:0;flex-direction:row}
+.set-nav{width:220px;flex-shrink:0;padding:16px 8px;overflow-y:auto;background:var(--surface2);border-right:1px solid var(--border)}
+.set-nav-item{padding:10px 14px;border-radius:9px;cursor:pointer;display:flex;align-items:center;gap:12px;font-size:13px;transition:.12s;position:relative}
+.set-nav-item:hover{background:var(--surface2)}
+.set-nav-item.active{background:var(--surface3);font-weight:500}
+.set-nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;border-radius:2px;background:linear-gradient(180deg,#7c6cf5,#c084fc)}
+.set-nav-item .ic{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.set-main{flex:1;overflow-y:auto;padding:26px 30px;min-width:0}
+.set-sec{display:none}
+.set-sec.on{display:block}
+.set-h1{font-size:24px;font-weight:600;margin:0 0 6px}
+.set-sub{color:var(--text2);font-size:13px;margin:0 0 22px}
+.set-card{padding:14px 18px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;gap:16px;margin-bottom:8px;transition:.12s}
+.set-card.clickable{cursor:pointer}
+.set-card.clickable:hover{background:var(--surface3)}
+.set-card .sc-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--surface);flex-shrink:0}
+.set-card .sc-body{flex:1;min-width:0}
+.set-card .sc-t{font-size:13.5px;font-weight:500}
+.set-card .sc-d{font-size:12px;color:var(--text2);margin-top:2px}
+.wp-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin:12px 0 22px}
+.accent-pick{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 22px}
+.toggle{position:relative;width:46px;height:26px;border-radius:13px;background:var(--surface3);cursor:pointer;transition:.2s;flex-shrink:0;border:1px solid var(--border)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.22s;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.toggle.on{background:linear-gradient(135deg,#7c6cf5,#c084fc);border-color:transparent}
+.toggle.on::after{transform:translateX(20px)}
+.info-box{padding:16px 20px;border-radius:12px;background:linear-gradient(135deg,rgba(124,108,245,.15),rgba(192,132,252,.1));border:1px solid rgba(124,108,245,.2);font-size:13px;line-height:1.9}
+.info-box b{color:var(--accent)}
+
+.game-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px;background:var(--surface2)}
+.game-wrap canvas{border-radius:12px;background:#0a0a14;box-shadow:0 8px 30px rgba(0,0,0,.35)}
+.game-hud{display:flex;gap:20px;align-items:center;font-size:13px;color:var(--text2)}
+.game-hud b{color:var(--accent);font-weight:600}
+.game-hint{font-size:11.5px;color:var(--text3);text-align:center}
+.mines-grid{display:grid;gap:3px;background:var(--border);padding:3px;border-radius:10px}
+.mine-cell{width:32px;height:32px;border-radius:5px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer;transition:.1s;user-select:none}
+.mine-cell:hover{background:var(--surface3)}
+.mine-cell.rev{background:var(--surface);cursor:default}
+.mine-cell.rev:hover{background:var(--surface)}
+.mine-cell.boom{background:#ef4444;color:#fff}
+.mine-cell.flag{background:#f59e0b;color:#fff}
+.c1{color:#60a5fa}.c2{color:#4ade80}.c3{color:#f87171}.c4{color:#a78bfa}
+.c5{color:#fbbf24}.c6{color:#22d3ee}.c7{color:#f472b6}.c8{color:#9ca3af}
+.g2048-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:var(--surface3);padding:10px;border-radius:14px;width:340px;height:340px}
+.g2048-cell{border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--text);transition:.15s;user-select:none}
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:400px}
+.mem-card{aspect-ratio:1;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:34px;cursor:pointer;transition:.2s;user-select:none;border:2px solid var(--border)}
+.mem-card:hover{background:var(--surface3);transform:scale(1.04)}
+.mem-card.flipped{background:linear-gradient(135deg,#7c6cf5,#c084fc);color:#fff;border-color:transparent}
+.mem-card.matched{background:linear-gradient(135deg,#4ade80,#22d3ee);color:#fff;border-color:transparent;cursor:default}
+.mem-card.matched:hover{transform:none}
+.ttt-grid{display:grid;grid-template-columns:repeat(3,90px);gap:8px}
+.ttt-cell{width:90px;height:90px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:300;cursor:pointer;transition:.12s;color:inherit}
+.ttt-cell:hover{background:var(--surface3)}
+.ttt-cell.x{color:var(--accent)}
+.ttt-cell.o{color:var(--accent2)}
+
+.sticky-app{flex:1;padding:20px;overflow:auto;display:flex;flex-wrap:wrap;gap:14px;align-content:flex-start;background:var(--surface2)}
+.sticky-note{width:220px;height:220px;padding:16px;border-radius:12px;color:#222;display:flex;flex-direction:column;box-shadow:0 10px 26px rgba(0,0,0,.3);position:relative;transition:.15s}
+.sticky-note:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(0,0,0,.4)}
+.sticky-note textarea{flex:1;width:100%;border:0;background:transparent;resize:none;outline:0;font-family:inherit;font-size:14px;line-height:1.5;color:#222}
+.sticky-note .st-close{position:absolute;top:8px;right:8px;width:22px;height:22px;border:0;background:rgba(0,0,0,.1);border-radius:50%;cursor:pointer;font-size:11px;color:#222;opacity:0;transition:.15s}
+.sticky-note:hover .st-close{opacity:.7}
+.sticky-note .st-close:hover{opacity:1;background:rgba(0,0,0,.2)}
+.sticky-add{width:220px;height:220px;border:2px dashed var(--border2);border-radius:12px;background:transparent;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--text3)}
+.sticky-add:hover{border-color:var(--accent);color:var(--accent)}
+
+.todo-app{flex:1;display:flex;flex-direction:column;padding:20px;gap:14px;overflow-y:auto}
+.todo-input{display:flex;gap:10px}
+.todo-list{display:flex;flex-direction:column;gap:6px}
+.todo-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:var(--surface2);transition:.12s}
+.todo-item:hover{background:var(--surface3)}
+.todo-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--border2);background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.15s}
+.todo-check.on{background:linear-gradient(135deg,#7c6cf5,#c084fc);border-color:transparent}
+.todo-check.on::after{content:'✓';color:#fff;font-size:14px;font-weight:700}
+.todo-text{flex:1;font-size:13.5px;transition:.15s}
+.todo-text.done{text-decoration:line-through;color:var(--text3)}
+.todo-del{border:0;background:transparent;color:inherit;cursor:pointer;opacity:.4;padding:4px 8px;border-radius:6px;font-size:14px;transition:.12s}
+.todo-del:hover{opacity:1;background:var(--surface3);color:#ef4444}
+
+.pomodoro{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;text-align:center}
+.pomo-time{font-size:96px;font-weight:200;font-variant-numeric:tabular-nums;line-height:1;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.pomo-phase{font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.15em;font-weight:600}
+.pomo-modes{display:flex;gap:6px;background:var(--surface2);padding:4px;border-radius:11px}
+.pomo-mode{padding:8px 20px;border:0;background:transparent;border-radius:8px;cursor:pointer;color:inherit;font-size:12.5px;transition:.15s}
+.pomo-mode.on{background:var(--accent);color:#fff}
+
+.about-app{flex:1;padding:32px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;overflow-y:auto}
+.about-logo{width:90px;height:90px;border-radius:22px;background:conic-gradient(from 0deg,#7c6cf5,#c084fc,#ec4899,#7c6cf5);position:relative;box-shadow:0 20px 50px rgba(124,108,245,.45)}
+.about-logo::after{content:'';position:absolute;inset:4px;border-radius:18px;background:radial-gradient(circle at 35% 30%,#1a1a2e,#0a0a14)}
+.about-logo::before{content:'◆';position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;z-index:2;font-size:40px;background:linear-gradient(135deg,#c084fc,#ec4899);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.about-app h1{font-size:32px;font-weight:300;letter-spacing:.3em;margin:0;text-transform:uppercase;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.about-app .ver{font-size:12px;color:var(--text2);letter-spacing:.2em;text-transform:uppercase;margin-top:-10px}
+.about-app .info{max-width:420px;font-size:13.5px;line-height:2;color:var(--text2);text-align:left}
+.about-app .info b{color:var(--text)}
+
+.tm{padding:0;flex:1;display:flex;flex-direction:column;min-height:0}
+.tm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;padding:16px}
+.tm-stat{padding:12px;border-radius:10px;background:var(--surface2);text-align:center}
+.tm-stat .v{font-size:20px;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+.tm-stat .l{font-size:11px;color:var(--text2);margin-top:2px}
+.tm-list{flex:1;overflow-y:auto;padding:0 12px 12px}
+.tm-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:14px;padding:11px 12px;border-radius:9px;font-size:12.5px;cursor:pointer;transition:.1s;align-items:center}
+.tm-row:hover{background:var(--surface2)}
+.tm-row.sel{background:var(--surface3)}
+.tm-row .tm-name{display:flex;align-items:center;gap:10px;overflow:hidden}
+.tm-row .tm-name span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tm-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+.browser-app{display:flex;flex-direction:column;flex:1;min-height:0;background:var(--surface)}
+.browser-tabs{display:flex;align-items:flex-end;gap:2px;padding:6px 6px 0;overflow-x:auto;overflow-y:hidden;background:var(--surface2);border-bottom:1px solid var(--border);min-height:40px;scrollbar-width:none}
+.browser-tabs::-webkit-scrollbar{height:0}
+.browser-tab{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 12px;border-radius:9px 9px 0 0;background:transparent;cursor:pointer;color:inherit;font-size:12px;min-width:130px;max-width:200px;flex-shrink:0;transition:.12s}
+.browser-tab:hover{background:var(--surface)}
+.browser-tab.active{background:var(--surface);box-shadow:0 -2px 0 var(--accent) inset}
+.browser-tab .tab-favicon{font-size:13px;flex-shrink:0}
+.browser-tab .tab-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.browser-tab .tab-close{width:18px;height:18px;border-radius:5px;border:0;background:transparent;color:inherit;opacity:.5;font-size:11px;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.browser-tab .tab-close:hover{background:var(--surface3);opacity:1}
+.browser-tab-new{width:32px;height:32px;border:0;border-radius:9px;background:transparent;color:inherit;font-size:16px;flex-shrink:0;margin-bottom:2px;display:flex;align-items:center;justify-content:center}
+.browser-tab-new:hover{background:var(--surface)}
+.browser-toolbar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surface2);border-bottom:1px solid var(--border)}
+.browser-url-wrap{flex:1;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:0 4px 0 14px;height:36px;min-width:0}
+.browser-url-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,108,245,.15)}
+.browser-url-secure{font-size:13px;opacity:.6;flex-shrink:0}
+.browser-url{flex:1;background:transparent;border:0;outline:0;color:inherit;font-size:13px;min-width:0;padding:0}
+.browser-url-actions{display:flex;gap:1px;flex-shrink:0}
+.browser-url-actions .icon-btn{width:30px;height:30px;border-radius:8px;font-size:14px}
+.browser-bookmarks{display:flex;gap:6px;padding:6px 12px;min-height:36px;background:var(--surface2);border-bottom:1px solid var(--border);overflow-x:auto;align-items:center}
+.browser-bookmark{display:flex;align-items:center;gap:6px;padding:5px 8px 5px 10px;border-radius:8px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:12px;color:inherit;white-space:nowrap;flex-shrink:0;max-width:200px}
+.browser-bookmark:hover{background:var(--surface3)}
+.browser-bookmark > span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.browser-bookmark-del{border:0;background:transparent;color:inherit;opacity:.4;padding:0 2px;font-size:11px;border-radius:4px}
+.browser-bookmark-del:hover{opacity:1;color:#ef4444}
+.browser-content{flex:1;position:relative;min-height:0;background:#fff;overflow:hidden}
+[data-theme="dark"] .browser-content{background:#12121a}
+.browser-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+[data-theme="dark"] .browser-frame{background:#12121a}
+.browser-home{position:absolute;inset:0;overflow-y:auto;padding:60px 30px 30px;background:linear-gradient(135deg,#0f0524,#1a0b3d 30%,#0f2a4a);color:#eeeef5}
+.browser-home-box{max-width:640px;margin:0 auto;text-align:center}
+.browser-home-logo{font-size:52px;font-weight:200;letter-spacing:.25em;margin:0 0 8px;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
+.browser-home-sub{font-size:13.5px;opacity:.6;margin-bottom:28px}
+.browser-home-search{margin-bottom:36px}
+.browser-home-search input{width:100%;padding:15px 22px;border-radius:28px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.08);color:#fff;font-size:15px;outline:none;transition:.15s}
+.browser-home-search input::placeholder{color:rgba(255,255,255,.5)}
+.browser-home-search input:focus{background:rgba(255,255,255,.14);border-color:#7c6cf5;box-shadow:0 0 0 4px rgba(124,108,245,.2)}
+.browser-home-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.browser-tile{padding:18px 10px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:.15s;user-select:none}
+.browser-tile:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}
+.browser-tile .ic{font-size:26px;line-height:1}
+.browser-tile .nm{font-size:11.5px;margin-top:6px;opacity:.8}
+.browser-status{padding:5px 12px;font-size:11.5px;color:var(--text3);background:var(--surface2);border-top:1px solid var(--border);display:flex;justify-content:space-between;gap:10px}
+.browser-status span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+@media (max-width:600px){
+  #taskbar{min-width:calc(100vw - 16px)}
+  .tb-clock{display:none}
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<div id="boot">
+  <div class="logo"></div>
+  <div class="boot-title">PrismOS</div>
+  <div class="boot-sub">Твоя вселенная</div>
+  <div class="boot-bar"><i></i></div>
+</div>
+
+<div id="setup" class="hidden">
+  <div class="setup-card">
+    <div class="progress"><span data-s="1" class="on"></span><span data-s="2"></span><span data-s="3"></span></div>
+    <div class="step on" data-panel="1">
+      <h1 id="su-title">Добро пожаловать 👋</h1>
+      <p class="lead" id="su-lead">PrismOS — персональная ОС в браузере. Создай свой аккаунт.</p>
+      <div class="field"><label>Как тебя зовут?</label><input class="input" id="su-name" maxlength="40" placeholder="Алекс"></div>
+      <div class="field"><label>Логин (латиница)</label><input class="input" id="su-login" maxlength="24" placeholder="alex"></div>
+      <div class="field"><label>Пароль (мин 4)</label><input class="input" id="su-pass" type="password" maxlength="64" placeholder="••••"></div>
+      <div class="err-msg" id="su-err"></div>
+    </div>
+    <div class="step" data-panel="2">
+      <h1>Настрой под себя</h1>
+      <p class="lead">Всё можно поменять позже.</p>
+      <div class="field"><label>Аватар</label></div>
+      <div class="avatar-row" id="su-avatars"></div>
+      <div class="field"><label>Обои</label></div>
+      <div class="wp-row" id="su-walls"></div>
+      <div class="field"><label>Акцент</label></div>
+      <div class="accent-row" id="su-accents"></div>
+      <div class="field"><label>Тема</label></div>
+      <div class="theme-row" id="su-themes">
+        <div class="theme-opt sel" data-t="dark"><div class="ic">🌙</div><div class="nm">Тёмная</div></div>
+        <div class="theme-opt" data-t="light"><div class="ic">☀️</div><div class="nm">Светлая</div></div>
+      </div>
+    </div>
+    <div class="step" data-panel="3">
+      <h1>Готово! ✨</h1>
+      <p class="lead">Проверь и заверши установку.</p>
+      <div class="summary" id="su-summary"></div>
+    </div>
+    <div class="setup-nav">
+      <button class="btn ghost" id="su-back" disabled>← Назад</button>
+      <button class="btn" id="su-login-link">Войти</button>
+      <button class="btn primary" id="su-next">Продолжить →</button>
+    </div>
+  </div>
+</div>
+
+<div id="loginScreen" class="hidden">
+  <div class="setup-card" style="max-width:420px">
+    <h1 style="font-size:26px;text-align:center;margin-bottom:6px;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">Вход</h1>
+    <p style="text-align:center;color:var(--text2);font-size:13px;margin-bottom:26px">PrismOS 3.0</p>
+    <div class="field"><label>Логин</label><input class="input" id="li-login" maxlength="24" placeholder="alex"></div>
+    <div class="field"><label>Пароль</label><input class="input" id="li-pass" type="password" maxlength="64" placeholder="••••"></div>
+    <div class="err-msg" id="li-err"></div>
+    <button class="btn primary" style="width:100%;margin-top:12px;padding:14px" id="li-go">Войти</button>
+    <div style="text-align:center;margin-top:16px"><button class="btn ghost" id="li-register">← Создать аккаунт</button></div>
+  </div>
+</div>
+
+<div id="lock" class="hidden">
+  <div class="lock-inner" id="lk-main">
+    <div class="lock-time" id="lk-time">00:00</div>
+    <div class="lock-date" id="lk-date"></div>
+    <div class="lock-hint" id="lk-hint">Нажми, чтобы войти</div>
+  </div>
+  <div class="lock-user" id="lk-user">
+    <div class="lock-avatar" id="lk-avatar">👤</div>
+    <div class="lock-name" id="lk-name">Пользователь</div>
+    <div class="lock-pass">
+      <input type="password" id="lk-pass" placeholder="Пароль">
+      <button id="lk-go">→</button>
+    </div>
+    <div class="lock-err" id="lk-err"></div>
+  </div>
+</div>
+
+<div id="desktop" class="hidden">
+  <div id="wallpaper" class="wp-aurora"></div>
+  <div id="iconLayer"></div>
+  <div id="widgetLayer"></div>
+  <div id="windowLayer"></div>
+</div>
+
+<div id="taskbar" class="hidden">
+  <button class="tb-start" id="startBtn"></button>
+  <div id="tasks"></div>
+  <div class="tb-tray">
+    <button class="tray-btn" id="trayQuick" title="Быстрые настройки">⚙️</button>
+    <div class="tb-clock" id="tb-clock">
+      <b id="tb-time">00:00</b>
+      <span id="tb-date">01 янв</span>
+    </div>
+    <button class="tray-btn" id="trayNotif" title="Уведомления">🔔<span class="dot hidden" id="notifDot"></span></button>
+  </div>
+</div>
+
+<div id="start">
+  <div class="sm-greet">
+    <h2 id="sm-greet-title">Привет!</h2>
+    <p id="sm-greet-sub">Хорошего дня в PrismOS</p>
+  </div>
+  <input class="sm-search" id="sm-search" placeholder="Поиск приложений…">
+  <div class="sm-scroll">
+    <div class="sm-sec-title">Приложения</div>
+    <div class="sm-apps" id="sm-apps"></div>
+  </div>
+  <div class="sm-footer">
+    <div class="sm-user" id="sm-user">
+      <div class="av">👤</div>
+      <div><div class="nm">Пользователь</div><div class="sub">@user</div></div>
+    </div>
+    <div class="sm-actions">
+      <button class="btn sm" id="sm-lock">🔒</button>
+      <button class="btn sm" id="sm-settings">⚙️</button>
+      <button class="btn sm danger" id="sm-power">⏻</button>
+    </div>
+  </div>
+</div>
+
+<div class="panel" id="quick">
+  <div class="qp-grid" id="qp-grid"></div>
+  <div class="qp-slider"><span class="ic">🔆</span><input type="range" min="30" max="100" value="100" id="qp-bright"></div>
+  <div class="qp-footer"><span>⚡ PrismOS 3.0</span><a id="qp-settings">Все настройки →</a></div>
+</div>
+
+<div class="panel" id="notif">
+  <div class="np-head"><h3>Уведомления</h3><a id="np-clear">Очистить</a></div>
+  <div class="np-body" id="np-body"><div class="np-empty">Пока пусто ✨</div></div>
+</div>
+
+<div id="ctx"></div>
+<div id="toasts"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   УТИЛИТЫ
+   ============================================================ */
+function $(s, r){ return (r || document).querySelector(s); }
+function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function ce(tag, cls, html){ var e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function fmtSize(n){ if (n < 1024) return n + ' Б'; if (n < 1048576) return (n/1024).toFixed(1) + ' КБ'; if (n < 1073741824) return (n/1048576).toFixed(1) + ' МБ'; return (n/1073741824).toFixed(2) + ' ГБ'; }
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+function hueShift(hex, deg){
+  var c = hex.replace('#','');
+  var r = parseInt(c.substr(0,2),16)/255, g = parseInt(c.substr(2,2),16)/255, b = parseInt(c.substr(4,2),16)/255;
+  var max = Math.max(r,g,b), min = Math.min(r,g,b);
+  var h, s, l = (max + min) / 2, d = max - min;
+  if (d === 0){ h = 0; s = 0; } else {
+    s = l > .5 ? d/(2-max-min) : d/(max+min);
+    if (max === r) h = ((g-b)/d + (g<b?6:0)); else if (max === g) h = ((b-r)/d + 2); else h = ((r-g)/d + 4);
+    h /= 6;
+  }
+  h = (h + deg/360 + 1) % 1;
+  function h2r(p,q,t){ if (t<0) t+=1; if (t>1) t-=1; if (t<1/6) return p+(q-p)*6*t; if (t<1/2) return q; if (t<2/3) return p+(q-p)*(2/3-t)*6; return p; }
+  var rr, gg, bb;
+  if (s === 0){ rr = gg = bb = l; } else {
+    var q = l < .5 ? l*(1+s) : l+s-l*s, p = 2*l - q;
+    rr = h2r(p,q,h+1/3); gg = h2r(p,q,h); bb = h2r(p,q,h-1/3);
+  }
+  function t(x){ return Math.round(x*255).toString(16); }
+  var rx = t(rr), gx = t(gg), bx = t(bb);
+  if (rx.length < 2) rx = '0' + rx;
+  if (gx.length < 2) gx = '0' + gx;
+  if (bx.length < 2) bx = '0' + bx;
+  return '#' + rx + gx + bx;
+}
+
+/* ============================================================
+   API — общение с сервером
+   ============================================================ */
+var API = {
+  base: '',
+  token: null,
+  setToken: function(t){
+    this.token = t;
+    try { if (t) localStorage.setItem('prismos.token', t); else localStorage.removeItem('prismos.token'); } catch(e){}
+  },
+  restoreToken: function(){
+    try { var t = localStorage.getItem('prismos.token'); if (t) this.token = t; } catch(e){}
+    return this.token;
+  },
+  call: function(path, method, body){
+    var self = this;
+    var headers = { 'Content-Type': 'application/json' };
+    if (this.token) headers['Authorization'] = 'Bearer ' + this.token;
+    return fetch(this.base + path, {
+      method: method || 'GET',
+      headers: headers,
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(d){
+        if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
+        return d;
+      });
+    });
+  }
+};
+
+/* ============================================================
+   AUTH / USER
+   ============================================================ */
+var Auth = {
+  current: null,        // объект user с сервера
+  fs: null,             // локальная копия ФС
+  settings: null,       // локальная копия настроек
+
+  applyUser: function(u){
+    this.current = u;
+    this.fs = u.fs || { type:'folder', children:{} };
+    this.settings = u.settings || {};
+  },
+
+  register: function(login, pass, display, avatar, wallpaper, accent, theme){
+    return API.call('/api/register', 'POST', {
+      login: login, pass: pass, display: display,
+      avatar: avatar, wallpaper: wallpaper, accent: accent, theme: theme
+    }).then(function(d){
+      if (!d.token || !d.user) throw new Error('Сервер не вернул токен');
+      API.setToken(d.token);
+      Auth.applyUser(d.user);
+      return d.user;
+    });
+  },
+
+  login: function(login, pass){
+    return API.call('/api/login', 'POST', { login: login, pass: pass })
+      .then(function(d){
+        if (!d.token || !d.user) throw new Error('Сервер не вернул токен');
+        API.setToken(d.token);
+        Auth.applyUser(d.user);
+        return d.user;
+      });
+  },
+
+  logout: function(){
+    API.setToken(null);
+    this.current = null; this.fs = null; this.settings = null;
+    try { sessionStorage.removeItem('prismos.loggedin'); } catch(e){}
+  },
+
+  me: function(){
+    return API.call('/api/me', 'GET').then(function(d){
+      if (!d.user) throw new Error('Нет пользователя');
+      Auth.applyUser(d.user);
+      return d.user;
+    });
+  },
+
+  saveSettings: function(patch){
+    var self = this;
+    // Мгновенно применяем локально
+    for (var k in patch) if (patch.hasOwnProperty(k)) this.settings[k] = patch[k];
+    return API.call('/api/user/settings', 'POST', patch).catch(function(e){
+      console.warn('Не сохранилось на сервере:', e.message);
+    });
+  },
+
+  saveProfile: function(patch){
+    var self = this;
+    for (var k in patch) if (patch.hasOwnProperty(k)) this.current[k] = patch[k];
+    return API.call('/api/user/profile', 'POST', patch).catch(function(e){
+      console.warn('Профиль не сохранился:', e.message);
+    });
+  },
+
+  setPassword: function(newPass){
+    return API.call('/api/user/password', 'POST', { pass: newPass });
+  },
+
+  /* === FS через сервер === */
+  fsList: function(path){
+    var parts = FS.parse(path);
+    var n = this.fs;
+    for (var i = 0; i < parts.length; i++){
+      if (!n.children || !n.children[parts[i]]) return [];
+    }
+    return FS.listLocal(this.fs, path);
+  },
+  fsWrite: function(path, content){
+    var self = this;
+    return API.call('/api/user/fs/write', 'POST', { path: path, content: content })
+      .then(function(d){ if (d.fs) self.fs = d.fs; return true; })
+      .catch(function(e){ console.warn(e.message); return false; });
+  },
+  fsMkdir: function(path){
+    var self = this;
+    return API.call('/api/user/fs/mkdir', 'POST', { path: path })
+      .then(function(d){ if (d.fs) self.fs = d.fs; return true; })
+      .catch(function(e){ console.warn(e.message); return false; });
+  },
+  fsRemove: function(path){
+    var self = this;
+    return API.call('/api/user/fs/remove', 'POST', { path: path })
+      .then(function(d){ if (d.fs) self.fs = d.fs; return true; })
+      .catch(function(e){ console.warn(e.message); return false; });
+  },
+  fsRename: function(path, newName){
+    var self = this;
+    return API.call('/api/user/fs/rename', 'POST', { path: path, newName: newName })
+      .then(function(d){ if (d.fs) self.fs = d.fs; return true; })
+      .catch(function(e){ console.warn(e.message); return false; });
+  }
+};
+
+/* ============================================================
+   FS — локальные операции над кэшем (сам FS хранится на сервере)
+   ============================================================ */
+var FS = {
+  parse: function(p){ return Array.isArray(p) ? p.filter(Boolean) : String(p || '/').split('/').filter(Boolean); },
+  get: function(userOrFs, path){
+    // userOrFs может быть user (Auth.current) или чистый fs
+    var n = userOrFs && userOrFs.fs ? userOrFs.fs : userOrFs;
+    if (!n) return null;
+    var parts = this.parse(path);
+    for (var i = 0; i < parts.length; i++){
+      if (!n.children || !n.children[parts[i]]) return null;
+      n = n.children[parts[i]];
+    }
+    return n;
+  },
+  listLocal: function(fs, path){
+    var n = this.get(fs, path);
+    if (!n || !n.children) return [];
+    var r = [];
+    for (var name in n.children) if (n.children.hasOwnProperty(name)) r.push({ name:name, node:n.children[name] });
+    return r;
+  },
+  list: function(user, path){
+    if (user === Auth.current) return Auth.fsList(path);
+    return this.listLocal(user && user.fs ? user.fs : user, path);
+  }
+};
+
+/* ============================================================
+   ЗВУК
+   ============================================================ */
+var Sound = {
+  ctx: null,
+  enabled: function(){ return Auth.settings && Auth.settings.sound !== false; },
+  init: function(){ if (this.ctx) return; try { var C = window.AudioContext || window.webkitAudioContext; if (C) this.ctx = new C(); } catch(e){} },
+  beep: function(freq, dur, type, gain){
+    dur = dur || 0.08; type = type || 'sine'; gain = gain || 0.04;
+    if (!this.enabled()) return;
+    this.init(); if (!this.ctx) return;
+    try {
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      var o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = type; o.frequency.value = freq; o.connect(g); g.connect(this.ctx.destination);
+      var t = this.ctx.currentTime;
+      g.gain.setValueAtTime(gain, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch(e){}
+  },
+  click: function(){ this.beep(880, 0.03, 'sine', 0.02); },
+  open: function(){ this.beep(660, 0.06, 'sine', 0.03); },
+  close: function(){ this.beep(440, 0.06, 'sine', 0.025); },
+  success: function(){ var self = this; [880,1175,1480].forEach(function(f,i){ setTimeout(function(){ self.beep(f,0.1,'sine',0.04); }, i*70); }); },
+  error: function(){ this.beep(180, 0.2, 'sawtooth', 0.05); },
+  notify: function(){ var self = this; [1000,1500].forEach(function(f,i){ setTimeout(function(){ self.beep(f,0.09,'sine',0.035); }, i*80); }); },
+  startup: function(){ var self = this; [523,659,784,1047,1319].forEach(function(f,i){ setTimeout(function(){ self.beep(f,0.28,'sine',0.045); }, i*120); }); }
+};
+
+/* ============================================================
+   УВЕДОМЛЕНИЯ
+   ============================================================ */
+var Notify = {
+  history: [],
+  toast: function(title, msg, icon, timeout){
+    icon = icon || '🔔'; timeout = timeout || 4500;
+    var item = { id:Date.now()+Math.random(), title:title, msg:msg, icon:icon, at:Date.now() };
+    this.history.push(item);
+    if (this.history.length > 50) this.history.shift();
+    this.renderCenter(); this.showDot();
+    var t = ce('div', 'toast');
+    t.innerHTML = '<div class="t-ic">' + icon + '</div><div class="t-body"><div class="t-title">' + esc(title) + '</div><div class="t-msg">' + esc(msg) + '</div></div><button class="t-close">✕</button>';
+    var c = $('#toasts'); if (!c) return; c.appendChild(t);
+    var close = function(){ t.classList.add('out'); setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); }, 240); };
+    t.querySelector('.t-close').onclick = close;
+    if (timeout) setTimeout(close, timeout);
+    Sound.notify();
+  },
+  showDot: function(){ var d = $('#notifDot'); if (d) d.classList.remove('hidden'); },
+  hideDot: function(){ var d = $('#notifDot'); if (d) d.classList.add('hidden'); },
+  renderCenter: function(){
+    var body = $('#np-body'); if (!body) return;
+    if (!this.history.length){ body.innerHTML = '<div class="np-empty">Пока пусто ✨</div>'; return; }
+    body.innerHTML = '';
+    this.history.slice().reverse().forEach(function(n){
+      var ago = Date.now() - n.at;
+      var agoStr = ago < 60000 ? 'только что' : ago < 3600000 ? Math.floor(ago/60000) + ' мин' : Math.floor(ago/3600000) + ' ч';
+      var it = ce('div', 'np-item');
+      it.innerHTML = '<div class="i-ic">' + n.icon + '</div><div style="flex:1"><div class="i-t">' + esc(n.title) + '</div><div class="i-m">' + esc(n.msg) + '</div><div style="font-size:10.5px;color:var(--text3);margin-top:5px">' + agoStr + '</div></div>';
+      body.appendChild(it);
+    });
+  }
+};
+
+/* ============================================================
+   WINDOW MANAGER
+   ============================================================ */
+var WM = {
+  wins: {}, order: [], zTop: 20, activeId: null, seq: 0,
+  create: function(appId, app, opts){
+    if (!app) return;
+    opts = opts || {};
+    if (app.single){
+      for (var i = 0; i < this.order.length; i++){
+        var rid = this.order[i], rrec = this.wins[rid];
+        if (rrec && rrec.appId === appId){ if (rrec.minimized) this.restore(rid); this.focus(rid); return rid; }
+      }
+    }
+    var id = 'w' + (++this.seq);
+    var node = ce('div', 'window'); node.setAttribute('data-id', id);
+    var w = clamp(app.width || 700, 320, window.innerWidth - 40);
+    var h = clamp(app.height || 480, 220, window.innerHeight - 100);
+    node.style.width = w + 'px'; node.style.height = h + 'px';
+    var n = Object.keys(this.wins).length % 7;
+    node.style.left = clamp(Math.round((window.innerWidth - w) / 2) + n * 26 - 80, 12, window.innerWidth - w - 12) + 'px';
+    node.style.top = clamp(Math.round((window.innerHeight - h) / 2.6) + n * 22 - 50, 12, window.innerHeight - h - 60) + 'px';
+
+    var tb = ce('div', 'titlebar');
+    var titleWrap = ce('div', 'win-title', '<span class="wt-ic">' + (app.icon || '📄') + '</span><span class="wt-txt">' + esc(opts.title || app.name) + '</span>');
+    var btns = ce('div', 'win-btns');
+    var bMin = ce('button', 'win-btn', '<svg viewBox="0 0 10 10" fill="none"><path d="M1 5 L9 5" stroke="currentColor" stroke-width="1.2"/></svg>');
+    var bMax = ce('button', 'win-btn', '<svg viewBox="0 0 10 10" fill="none"><rect x="1" y="1" width="8" height="8" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>');
+    var bCls = ce('button', 'win-btn close', '<svg viewBox="0 0 10 10" fill="none"><path d="M1 1 L9 9 M9 1 L1 9" stroke="currentColor" stroke-width="1.2"/></svg>');
+    btns.appendChild(bMin); btns.appendChild(bMax); btns.appendChild(bCls);
+    tb.appendChild(titleWrap); tb.appendChild(btns);
+
+    var content = ce('div', 'win-content');
+    var built;
+    try { built = (typeof app.build === 'function') ? app.build({ id:id, node:node }, opts) : null; if (!built) built = ce('div', 'app-empty', 'Пусто'); }
+    catch(err){ console.error('Build fail:', err); built = ce('div', 'app-empty', 'Ошибка: ' + esc(err.message)); }
+    content.appendChild(built);
+
+    var rz = ce('div', 'resizer');
+    node.appendChild(tb); node.appendChild(content); node.appendChild(rz);
+    $('#windowLayer').appendChild(node);
+
+    var task = ce('button', 'tb-app running');
+    task.setAttribute('data-id', id); task.title = opts.title || app.name;
+    task.innerHTML = '<span>' + (app.icon || '📄') + '</span>';
+    $('#tasks').appendChild(task);
+
+    var rec = { id:id, appId:appId, app:app, node:node, content:content, task:task, titleEl: titleWrap.querySelector('.wt-txt'), minimized:false, maximized:false, prevRect:null, cleanup: built && built._cleanup ? built._cleanup : null, openedAt: Date.now() };
+    this.wins[id] = rec; this.order.push(id);
+    var self = this;
+
+    task.onclick = function(){ if (rec.minimized) self.restore(id); else if (self.activeId === id) self.minimize(id); else self.focus(id); };
+
+    var drag = null;
+    tb.addEventListener('pointerdown', function(e){
+      if (e.target.closest('.win-btn')) return;
+      self.focus(id);
+      if (rec.maximized){
+        var rect = node.getBoundingClientRect(); var ratio = (e.clientX - rect.left) / rect.width;
+        self.unmaximize(id);
+        var nw = parseFloat(node.style.width);
+        node.style.left = Math.max(0, e.clientX - nw * ratio) + 'px'; node.style.top = '8px';
+      }
+      drag = { sx:e.clientX, sy:e.clientY, sl:node.offsetLeft, st:node.offsetTop };
+      tb.setPointerCapture(e.pointerId);
+      node.classList.remove('animating');
+      function move(ev){ if (!drag) return; node.style.left = (drag.sl + ev.clientX - drag.sx) + 'px'; node.style.top = Math.max(0, drag.st + ev.clientY - drag.sy) + 'px'; }
+      function up(){ tb.removeEventListener('pointermove', move); tb.removeEventListener('pointerup', up); drag = null; }
+      tb.addEventListener('pointermove', move); tb.addEventListener('pointerup', up);
+    });
+
+    tb.addEventListener('dblclick', function(e){ if (e.target.closest('.win-btn')) return; if (rec.maximized) self.unmaximize(id); else self.maximize(id); });
+
+    rz.addEventListener('pointerdown', function(e){
+      e.stopPropagation(); self.focus(id);
+      var sx = e.clientX, sy = e.clientY, sw = node.offsetWidth, sh = node.offsetHeight;
+      rz.setPointerCapture(e.pointerId);
+      function move(ev){ node.style.width = Math.max(320, sw + ev.clientX - sx) + 'px'; node.style.height = Math.max(220, sh + ev.clientY - sy) + 'px'; }
+      function up(){ rz.removeEventListener('pointermove', move); rz.removeEventListener('pointerup', up); }
+      rz.addEventListener('pointermove', move); rz.addEventListener('pointerup', up);
+    });
+
+    bMin.onclick = function(e){ e.stopPropagation(); self.minimize(id); };
+    bMax.onclick = function(e){ e.stopPropagation(); if (rec.maximized) self.unmaximize(id); else self.maximize(id); };
+    bCls.onclick = function(e){ e.stopPropagation(); self.close(id); };
+    node.addEventListener('pointerdown', function(){ self.focus(id); });
+
+    this.focus(id);
+    Sound.open();
+    return id;
+  },
+  setTitle: function(id, text){ var rec = this.wins[id]; if (!rec) return; if (rec.titleEl) rec.titleEl.textContent = text; if (rec.task) rec.task.title = text; },
+  focus: function(id){
+    var rec = this.wins[id]; if (!rec) return;
+    if (rec.minimized) this.restore(id);
+    this.activeId = id; rec.node.style.zIndex = ++this.zTop;
+    for (var k in this.wins) if (this.wins.hasOwnProperty(k)){ this.wins[k].node.classList.toggle('focused', k === id); this.wins[k].task.classList.toggle('active', k === id); }
+  },
+  minimize: function(id){
+    var rec = this.wins[id]; if (!rec) return;
+    rec.node.classList.add('minimizing');
+    setTimeout(function(){ rec.minimized = true; rec.node.style.display = 'none'; rec.node.classList.remove('minimizing'); }, 180);
+    rec.task.classList.remove('active');
+    if (this.activeId === id) this.activeId = null;
+  },
+  restore: function(id){ var rec = this.wins[id]; if (!rec) return; rec.minimized = false; rec.node.style.display = 'flex'; this.focus(id); },
+  maximize: function(id){
+    var rec = this.wins[id]; if (!rec || rec.maximized) return;
+    rec.prevRect = { left:rec.node.style.left, top:rec.node.style.top, width:rec.node.style.width, height:rec.node.style.height };
+    rec.node.classList.add('animating', 'maximized');
+    rec.node.style.left = '0'; rec.node.style.top = '0'; rec.node.style.width = '100vw'; rec.node.style.height = '100vh';
+    rec.maximized = true;
+    var node = rec.node; setTimeout(function(){ node.classList.remove('animating'); }, 260);
+  },
+  unmaximize: function(id){
+    var rec = this.wins[id]; if (!rec || !rec.maximized) return;
+    rec.node.classList.add('animating'); rec.node.classList.remove('maximized');
+    if (rec.prevRect){ rec.node.style.left = rec.prevRect.left; rec.node.style.top = rec.prevRect.top; rec.node.style.width = rec.prevRect.width; rec.node.style.height = rec.prevRect.height; }
+    rec.maximized = false;
+    var node = rec.node; setTimeout(function(){ node.classList.remove('animating'); }, 260);
+  },
+  close: function(id){
+    var rec = this.wins[id]; if (!rec) return;
+    if (typeof rec.cleanup === 'function'){ try { rec.cleanup(); } catch(e){} }
+    rec.node.classList.add('closing');
+    var node = rec.node, task = rec.task;
+    setTimeout(function(){ if (node.parentNode) node.parentNode.removeChild(node); if (task.parentNode) task.parentNode.removeChild(task); }, 150);
+    delete this.wins[id];
+    var idx = this.order.indexOf(id); if (idx >= 0) this.order.splice(idx, 1);
+    if (this.activeId === id) this.activeId = null;
+    Sound.close();
+  },
+  minimizeAll: function(){ for (var id in this.wins) if (this.wins.hasOwnProperty(id)) this.minimize(id); },
+  count: function(){ return Object.keys(this.wins).length; }
+};
+
+/* ============================================================
+   КОНТЕКСТНОЕ МЕНЮ
+   ============================================================ */
+function showCtx(x, y, items){
+  var m = $('#ctx'); m.innerHTML = '';
+  for (var i = 0; i < items.length; i++){
+    (function(it){
+      if (it.sep){ m.appendChild(ce('div', 'ctx-sep')); return; }
+      var d = ce('div', 'ctx-item', '<span class="ic">' + (it.icon || '') + '</span><span>' + esc(it.label) + '</span>');
+      d.onclick = function(){ hideCtx(); if (it.action) it.action(); };
+      m.appendChild(d);
+    })(items[i]);
+  }
+  m.classList.add('open');
+  var r = m.getBoundingClientRect();
+  m.style.left = Math.min(x, window.innerWidth - r.width - 8) + 'px';
+  m.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+}
+function hideCtx(){ var m = $('#ctx'); if (m) m.classList.remove('open'); }
+document.addEventListener('pointerdown', function(e){ var m = $('#ctx'); if (m && m.classList.contains('open') && !m.contains(e.target)) hideCtx(); }, true);
+
+/* ============================================================
+   РЕЕСТР ПРИЛОЖЕНИЙ
+   ============================================================ */
+var APPS = {};
+function reg(id, cfg){ cfg.id = id; APPS[id] = cfg; }
+
+/* FILES */
+reg('files', {
+  name:'Файлы', icon:'📁', width:840, height:560, desktop:true,
+  build: function(win, opts){
+    opts = opts || {};
+    var wrap = ce('div', 'app');
+    var bar = ce('div', 'app-toolbar');
+    var files = ce('div', 'files');
+    var side = ce('div', 'files-side');
+    var main = ce('div', 'files-main');
+    files.appendChild(side); files.appendChild(main);
+    wrap.appendChild(bar); wrap.appendChild(files);
+    var path = opts.path ? FS.parse(opts.path) : [];
+
+    var bBack = ce('button', 'icon-btn', '←');
+    var bUp = ce('button', 'icon-btn', '↑');
+    var bNew = ce('button', 'icon-btn', '＋');
+    var bUpload = ce('button', 'icon-btn', '⬆');
+    var spacer = ce('div', 'spacer');
+    var status = ce('span', ''); status.style.cssText = 'font-size:12px;color:var(--text3)';
+    bar.appendChild(bBack); bar.appendChild(bUp); bar.appendChild(bNew); bar.appendChild(bUpload); bar.appendChild(spacer); bar.appendChild(status);
+
+    var folders = [
+      { ic:'🏠', label:'Главная', path:[] },
+      { ic:'🖥️', label:'Рабочий стол', path:['Рабочий стол'] },
+      { ic:'📄', label:'Документы', path:['Документы'] },
+      { ic:'🖼️', label:'Изображения', path:['Изображения'] },
+      { ic:'⬇️', label:'Загрузки', path:['Загрузки'] },
+      { ic:'📦', label:'Проекты', path:['Проекты'] }
+    ];
+
+    function renderSide(){
+      side.innerHTML = '';
+      folders.forEach(function(f){
+        var a = f.path.join('/') === path.join('/');
+        var it = ce('div', 'side-item' + (a ? ' active' : ''), '<span class="si-ic">' + f.ic + '</span><span>' + f.label + '</span>');
+        it.onclick = function(){ path = f.path.slice(); render(); };
+        side.appendChild(it);
+      });
+    }
+    function render(){
+      renderSide(); main.innerHTML = '';
+      var crumbs = ce('div', 'crumbs');
+      var rs = ce('span', '', 'Главная');
+      rs.onclick = function(){ path = []; render(); };
+      crumbs.appendChild(rs);
+      path.forEach(function(p, i){
+        crumbs.appendChild(ce('span', 'sep', '›'));
+        (function(i, p){
+          var s = ce('span', '', esc(p));
+          s.onclick = function(){ path = path.slice(0, i+1); render(); };
+          crumbs.appendChild(s);
+        })(i, p);
+      });
+      main.appendChild(crumbs);
+      var node = FS.get(Auth.current, path);
+      if (!node || node.type !== 'folder'){ main.appendChild(ce('div', 'app-empty', 'Папка недоступна')); return; }
+      var list = FS.listLocal(Auth.fs, path);
+      if (!list.length){ main.appendChild(ce('div', 'app-empty', 'Пусто. Создайте файл или папку.')); status.textContent = '0'; return; }
+      list.sort(function(a, b){ if (a.node.type !== b.node.type) return a.node.type === 'folder' ? -1 : 1; return a.name.localeCompare(b.name); });
+      var grid = ce('div', 'grid-files');
+      list.forEach(function(item){
+        var name = item.name, n = item.node;
+        var isF = n.type === 'folder';
+        var icon = isF ? '📁' : /\.(png|jpe?g|gif|webp|bmp|svg)$/i.test(name) ? '🖼️' : '📄';
+        var card = ce('div', 'file-card', '<div class="fc-ic">' + icon + '</div><div class="fc-nm">' + esc(name) + '</div>');
+        card.onclick = function(e){ e.stopPropagation(); $$('.file-card', grid).forEach(function(c){ c.classList.remove('sel'); }); card.classList.add('sel'); };
+        card.ondblclick = function(){
+          if (isF){ path = path.concat(name); render(); }
+          else if (/\.(png|jpe?g|gif|webp|bmp)$/i.test(name)) WM.create('photos', APPS.photos, { title:name });
+          else WM.create('notepad', APPS.notepad, { title:name, path:path.concat(name) });
+        };
+        card.oncontextmenu = function(e){
+          e.preventDefault(); e.stopPropagation();
+          showCtx(e.clientX, e.clientY, [
+            { icon:'📂', label:'Открыть', action:function(){ card.ondblclick(); } },
+            { icon:'✏️', label:'Переименовать', action:function(){
+              var nn = prompt('Новое имя:', name);
+              if (nn && nn !== name) Auth.fsRename(path.concat(name), nn).then(function(){ render(); });
+            }},
+            { sep:true },
+            { icon:'🗑️', label:'Удалить', action:function(){
+              if (confirm('Удалить "' + name + '"?')) Auth.fsRemove(path.concat(name)).then(function(){ render(); });
+            }}
+          ]);
+        };
+        grid.appendChild(card);
+      });
+      main.appendChild(grid);
+      status.textContent = list.length + ' элементов';
+    }
+    main.addEventListener('contextmenu', function(e){
+      if (e.target.closest('.file-card')) return;
+      e.preventDefault();
+      showCtx(e.clientX, e.clientY, [
+        { icon:'📁', label:'Создать папку', action:function(){ var n = prompt('Имя:', 'Новая папка'); if (n) Auth.fsMkdir(path.concat(n)).then(function(){ render(); }); } },
+        { icon:'📄', label:'Создать файл', action:function(){ var n = prompt('Имя:', 'новый.txt'); if (n) Auth.fsWrite(path.concat(n), '').then(function(){ render(); }); } },
+        { sep:true },
+        { icon:'🔄', label:'Обновить', action:render }
+      ]);
+    });
+    bBack.onclick = function(){ if (path.length){ path.pop(); render(); } };
+    bUp.onclick = function(){ path = []; render(); };
+    bNew.onclick = function(){
+      var c = confirm('OK — папка, Отмена — файл');
+      if (c){ var n = prompt('Имя папки:', 'Новая папка'); if (n) Auth.fsMkdir(path.concat(n)).then(function(){ render(); }); }
+      else { var n2 = prompt('Имя файла:', 'новый.txt'); if (n2) Auth.fsWrite(path.concat(n2), '').then(function(){ render(); }); }
+    };
+    bUpload.onclick = function(){
+      var inp = document.createElement('input');
+      inp.type = 'file'; inp.multiple = true;
+      inp.onchange = function(){
+        var total = inp.files.length, cnt = 0;
+        Array.prototype.forEach.call(inp.files, function(f){
+          var r = new FileReader();
+          r.onload = function(){
+            Auth.fsWrite(path.concat(f.name), r.result).then(function(){ cnt++; if (cnt === total) render(); });
+          };
+          if (f.type.indexOf('image/') === 0) r.readAsDataURL(f); else r.readAsText(f);
+        });
+      };
+      inp.click();
+    };
+    render();
+    return wrap;
+  }
+});
+
+/* TERMINAL */
+reg('terminal', {
+  name:'Терминал', icon:'⌨️', width:780, height:500, desktop:true,
+  build: function(win){
+    var wrap = ce('div', 'app terminal');
+    var out = ce('div', 'term-out');
+    var line = ce('div', 'term-line');
+    var prompt = ce('span', 'term-prompt', '~$');
+    var input = ce('input', 'term-input'); input.spellcheck = false;
+    line.appendChild(prompt); line.appendChild(input);
+    wrap.appendChild(out); wrap.appendChild(line);
+    var cwd = [], history = [], hIdx = -1;
+    function upPrompt(){ prompt.textContent = '~/[' + cwd.join('/') + ']$'; }
+    function print(txt, cls){ var d = ce('div', cls || ''); d.textContent = txt; out.appendChild(d); out.scrollTop = out.scrollHeight; }
+    function printHTML(html, cls){ var d = ce('div', cls || '', html); out.appendChild(d); out.scrollTop = out.scrollHeight; }
+    printHTML('<span class="accent">PrismOS Terminal</span> v3.0 — help для справки', 'dim'); print('');
+    var CMDS = {
+      help: function(){ printHTML('<span class="accent">Команды:</span>\n  help, clear, apps, open <app>\n  ls, cd, pwd, cat <file>\n  mkdir, touch, rm, edit\n  echo, date, whoami, neofetch\n  theme <0-13>, accent <#hex>'); },
+      clear: function(){ out.innerHTML = ''; },
+      apps: function(){ var l = []; for (var id in APPS) if (APPS.hasOwnProperty(id)) l.push('  ' + APPS[id].icon + '  ' + id); print(l.join('\n')); },
+      open: function(a){ if (!a) return print('open <app>', 'err'); if (!APPS[a]) return print('Не найдено: ' + a, 'err'); WM.create(a, APPS[a]); print('OK', 'ok'); },
+      ls: function(p){
+        var list = FS.listLocal(Auth.fs, p ? FS.parse(p) : cwd);
+        if (!list.length) return print('(пусто)', 'dim');
+        list.forEach(function(it){ var ic = it.node.type === 'folder' ? '📁' : '📄'; print('  ' + ic + '  ' + it.name); });
+      },
+      cd: function(p){
+        if (!p || p === '~' || p === '/'){ cwd = []; return upPrompt(); }
+        if (p === '..'){ cwd.pop(); return upPrompt(); }
+        var parts = p.split('/').filter(Boolean);
+        var next = p.charAt(0) === '/' ? [] : cwd.slice();
+        for (var i = 0; i < parts.length; i++){
+          if (parts[i] === '..'){ next.pop(); continue; }
+          var test = next.concat(parts[i]);
+          var node = FS.get(Auth.current, test);
+          if (!node || node.type !== 'folder') return print('cd: не папка', 'err');
+          next.push(parts[i]);
+        }
+        cwd = next; upPrompt();
+      },
+      pwd: function(){ print('/' + cwd.join('/')); },
+      cat: function(f){
+        if (!f) return print('cat <file>', 'err');
+        var p = f.charAt(0) === '/' ? FS.parse(f) : cwd.concat(f);
+        var node = FS.get(Auth.current, p);
+        if (!node) return print('Не найдено', 'err');
+        if (node.type !== 'file') return print('Не файл', 'err');
+        print(node.content || '(пусто)');
+      },
+      mkdir: function(n){ if (!n) return print('mkdir <n>', 'err'); Auth.fsMkdir(cwd.concat(n)).then(function(){ print('OK', 'ok'); }); },
+      touch: function(n){ if (!n) return print('touch <n>', 'err'); Auth.fsWrite(cwd.concat(n), '').then(function(){ print('OK', 'ok'); }); },
+      rm: function(n){ if (!n) return print('rm <n>', 'err'); Auth.fsRemove(cwd.concat(n)).then(function(){ print('OK', 'ok'); }); },
+      edit: function(f){ if (!f) return print('edit <f>', 'err'); WM.create('notepad', APPS.notepad, { title:f, path:cwd.concat(f) }); },
+      echo: function(){ print(Array.prototype.slice.call(arguments).join(' ')); },
+      date: function(){ print(new Date().toLocaleString('ru-RU')); },
+      whoami: function(){ print(Auth.current.display + ' (@' + Auth.current.name + ')'); },
+      neofetch: function(){ printHTML('<span class="accent">PrismOS 3.0</span>\nUser: ' + esc(Auth.current.display) + '\nScreen: ' + window.innerWidth + 'x' + window.innerHeight + '\nApps: ' + Object.keys(APPS).length + '\nWindows: ' + WM.count()); },
+      theme: function(n){ var i = parseInt(n,10); if (isNaN(i) || i < 0 || i >= WALLPAPERS.length) return print('0..' + (WALLPAPERS.length-1), 'err'); Auth.saveSettings({ wallpaper:i, customWallpaper:null }); Desktop.applySettings(); print('OK', 'ok'); },
+      accent: function(c){ if (!/^#[0-9a-f]{6}$/i.test(c || '')) return print('#rrggbb', 'err'); Auth.saveSettings({ accent:c }); Desktop.applySettings(); print('OK', 'ok'); },
+      exit: function(){ WM.close(win.id); }
+    };
+    input.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){
+        var raw = input.value; input.value = '';
+        print('/' + cwd.join('/') + ' $ ' + raw, 'dim');
+        if (raw.trim()){
+          history.push(raw); hIdx = history.length;
+          var parts = raw.trim().split(/\s+/); var cmd = parts[0], args = parts.slice(1);
+          if (CMDS[cmd]){ try { CMDS[cmd].apply(null, args); } catch(err){ print('Ошибка: ' + err.message, 'err'); } }
+          else print('Не найдено: ' + cmd, 'err');
+        }
+        out.scrollTop = out.scrollHeight;
+      } else if (e.key === 'ArrowUp'){ if (hIdx > 0){ hIdx--; input.value = history[hIdx]; e.preventDefault(); } }
+      else if (e.key === 'ArrowDown'){ if (hIdx < history.length - 1){ hIdx++; input.value = history[hIdx]; } else { hIdx = history.length; input.value = ''; } }
+    });
+    wrap.addEventListener('click', function(){ input.focus(); });
+    setTimeout(function(){ input.focus(); }, 60);
+    return wrap;
+  }
+});
+
+/* NOTEPAD */
+reg('notepad', {
+  name:'Блокнот', icon:'📝', width:720, height:520, desktop:true,
+  build: function(win, opts){
+    opts = opts || {};
+    var wrap = ce('div', 'app');
+    var bar = ce('div', 'app-toolbar');
+    var ta = ce('textarea', 'notepad-area'); ta.spellcheck = false;
+    var filePath = opts.path || null;
+    if (filePath){ var node = FS.get(Auth.current, filePath); ta.value = (node && node.content) || opts.text || ''; }
+    else ta.value = opts.text || '';
+    var status = ce('span', ''); status.style.cssText = 'font-size:12px;color:var(--text3);margin-left:auto';
+    var bSave = ce('button', 'btn sm', '💾');
+    var bSaveAs = ce('button', 'btn sm', '📋 Как…');
+    var bClear = ce('button', 'btn sm', '🗑');
+    function upStat(){ status.textContent = ta.value.length + ' симв.'; }
+    bSave.onclick = function(){
+      if (!filePath){ var n = prompt('Имя:', 'без_имени.txt'); if (!n) return; filePath = [n]; }
+      Auth.fsWrite(filePath, ta.value).then(function(){
+        WM.setTitle(win.id, filePath[filePath.length-1]);
+        status.textContent = '✓ Сохранено';
+        setTimeout(upStat, 1500);
+      });
+    };
+    bSaveAs.onclick = function(){
+      var cur = filePath ? filePath[filePath.length-1] : 'новый.txt';
+      var n = prompt('Сохранить как:', cur); if (!n) return;
+      filePath = [n];
+      Auth.fsWrite(filePath, ta.value).then(function(){ WM.setTitle(win.id, n); });
+    };
+    bClear.onclick = function(){ if (confirm('Очистить?')){ ta.value = ''; upStat(); } };
+    ta.addEventListener('input', upStat);
+    ta.addEventListener('keydown', function(e){ if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's'){ e.preventDefault(); bSave.click(); } });
+    bar.appendChild(bSave); bar.appendChild(bSaveAs); bar.appendChild(bClear); bar.appendChild(status);
+    wrap.appendChild(bar); wrap.appendChild(ta);
+    upStat(); setTimeout(function(){ ta.focus(); }, 60);
+    return wrap;
+  }
+});
+
+/* CALC */
+reg('calc', {
+  name:'Калькулятор', icon:'🧮', width:360, height:520, desktop:true,
+  build: function(win){
+    var wrap = ce('div', 'app calc');
+    var disp = ce('div', 'calc-display');
+    var valEl = ce('div', 'calc-value', '0');
+    disp.appendChild(valEl);
+    var pad = ce('div', 'calc-pad');
+    var expr = '';
+    function show(){
+      var preview = expr || '0';
+      try { var s = expr.replace(/[^0-9+\-*/.()%\s]/g, ''); if (s && /[+\-*/]/.test(s)){ var r = Function('"use strict";return(' + s + ')')(); if (typeof r === 'number' && isFinite(r)) preview = String(Math.round(r * 1e10) / 1e10); } } catch(e){}
+      valEl.textContent = preview;
+      valEl.style.fontSize = preview.length > 12 ? '22px' : preview.length > 8 ? '28px' : '38px';
+    }
+    function calc(){
+      try { var s = expr.replace(/[^0-9+\-*/.()%\s]/g, ''); var r = Function('"use strict";return(' + s + ')')(); if (!isFinite(r)) throw 0; expr = String(Math.round(r * 1e10) / 1e10); } catch(e){ expr = 'Ошибка'; }
+    }
+    var keys = [['C','fn'],['(','fn'],[')','fn'],['÷','op'],['7',''],['8',''],['9',''],['×','op'],['4',''],['5',''],['6',''],['−','op'],['1',''],['2',''],['3',''],['+','op'],['±',''],['0',''],['.',''],['=','eq']];
+    keys.forEach(function(pair){
+      var k = pair[0], cls = pair[1];
+      var b = ce('button', 'calc-btn ' + cls, k);
+      b.onclick = function(){
+        Sound.beep(880, 0.02, 'sine', 0.015);
+        if (k === 'C') expr = '';
+        else if (k === '=') calc();
+        else if (k === '±'){ if (expr.charAt(0) === '-') expr = expr.slice(1); else if (/^[\d.(]/.test(expr)) expr = '-' + expr; }
+        else if (k === '×') expr += '*';
+        else if (k === '÷') expr += '/';
+        else if (k === '−') expr += '-';
+        else if (expr === 'Ошибка') expr = k;
+        else expr += k;
+        show();
+      };
+      pad.appendChild(b);
+    });
+    var winId = null;
+    var onKey = function(e){
+      if (WM.activeId !== winId) return;
+      var k = e.key;
+      if (/^[0-9.()]$/.test(k)){ expr += k; show(); e.preventDefault(); }
+      else if (k === '+'){ expr += '+'; show(); e.preventDefault(); }
+      else if (k === '-'){ expr += '-'; show(); e.preventDefault(); }
+      else if (k === '*'){ expr += '*'; show(); e.preventDefault(); }
+      else if (k === '/'){ expr += '/'; show(); e.preventDefault(); }
+      else if (k === 'Enter' || k === '='){ calc(); show(); e.preventDefault(); }
+      else if (k === 'Backspace'){ expr = expr.slice(0, -1); show(); e.preventDefault(); }
+      else if (k === 'Escape'){ expr = ''; show(); e.preventDefault(); }
+    };
+    document.addEventListener('keydown', onKey);
+    wrap._cleanup = function(){ document.removeEventListener('keydown', onKey); };
+    setTimeout(function(){ winId = win.id; }, 0);
+    wrap.appendChild(disp); wrap.appendChild(pad);
+    show();
+    return wrap;
+  }
+});
+
+/* CLOCK */
+reg('clock', {
+  name:'Часы', icon:'⏰', width:420, height:560, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app');
+    wrap.style.cssText = 'padding:24px;gap:16px;display:flex;flex-direction:column;align-items:center;overflow-y:auto;flex:1';
+    var tabs = ce('div', '');
+    tabs.style.cssText = 'display:flex;gap:4px;background:var(--surface2);padding:4px;border-radius:11px';
+    var views = {};
+    var defs = [['clock','Часы'],['stopwatch','Секундомер'],['timer','Таймер']];
+    defs.forEach(function(d, i){
+      var b = ce('button', 'pomo-mode' + (i === 0 ? ' on' : ''), d[1]);
+      b.onclick = function(){
+        $$('.pomo-mode', tabs).forEach(function(x){ x.classList.remove('on'); });
+        b.classList.add('on');
+        for (var k in views) if (views.hasOwnProperty(k)) views[k].style.display = 'none';
+        views[d[0]].style.display = 'flex';
+      };
+      tabs.appendChild(b);
+    });
+    wrap.appendChild(tabs);
+
+    var vCl = ce('div');
+    vCl.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:16px';
+    var cTime = ce('div', 'pomo-time', '--:--:--');
+    vCl.appendChild(cTime);
+    views.clock = vCl; wrap.appendChild(vCl);
+
+    var vSw = ce('div');
+    vSw.style.cssText = 'display:none;flex-direction:column;align-items:center;gap:16px';
+    var swDisp = ce('div', 'pomo-time', '00:00.00');
+    var swA = ce('div');
+    swA.style.cssText = 'display:flex;gap:10px';
+    var swT = ce('button', 'btn primary', 'Старт');
+    var swR = ce('button', 'btn', 'Сброс');
+    swA.appendChild(swT); swA.appendChild(swR);
+    vSw.appendChild(swDisp); vSw.appendChild(swA);
+    views.stopwatch = vSw; wrap.appendChild(vSw);
+
+    var vT = ce('div');
+    vT.style.cssText = 'display:none;flex-direction:column;align-items:center;gap:16px';
+    var tDisp = ce('div', 'pomo-time', '00:00');
+    var tPre = ce('div'); tPre.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;justify-content:center';
+    [1,5,10,25].forEach(function(m){ var b = ce('button', 'btn sm', m + ' мин'); b.onclick = function(){ tLeft = m * 60; tDisp.textContent = fmtTm(tLeft); }; tPre.appendChild(b); });
+    var tA = ce('div'); tA.style.cssText = 'display:flex;gap:10px';
+    var tT = ce('button', 'btn primary', 'Старт');
+    var tR = ce('button', 'btn', 'Сброс');
+    tA.appendChild(tT); tA.appendChild(tR);
+    vT.appendChild(tDisp); vT.appendChild(tPre); vT.appendChild(tA);
+    views.timer = vT; wrap.appendChild(vT);
+
+    var running = true;
+    (function tick(){
+      if (!running) return;
+      var d = new Date();
+      cTime.textContent = d.toLocaleTimeString('ru-RU');
+      requestAnimationFrame(tick);
+    })();
+    var swStart = 0, swEl = 0, swRun = false, swRAF;
+    function fmtSw(ms){ var t = Math.floor(ms/10); return String(Math.floor(t/6000)).padStart(2,'0') + ':' + String(Math.floor(t/100)%60).padStart(2,'0') + '.' + String(t%100).padStart(2,'0'); }
+    function swLoop(){ if (!swRun) return; swDisp.textContent = fmtSw(swEl + (performance.now() - swStart)); swRAF = requestAnimationFrame(swLoop); }
+    swT.onclick = function(){ if (swRun){ swEl += performance.now() - swStart; swRun = false; swT.textContent = 'Старт'; } else { swStart = performance.now(); swRun = true; swLoop(); swT.textContent = 'Пауза'; } };
+    swR.onclick = function(){ swRun = false; swEl = 0; swDisp.textContent = '00:00.00'; swT.textContent = 'Старт'; cancelAnimationFrame(swRAF); };
+    var tLeft = 0, tRun = false, tTimeout;
+    function fmtTm(s){ return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
+    function tLoop(){ if (!tRun) return; tLeft -= 0.1; tDisp.textContent = fmtTm(Math.max(0, Math.ceil(tLeft))); if (tLeft <= 0){ tRun = false; Sound.success(); Notify.toast('Таймер', 'Время вышло!', '⏰'); tT.textContent = 'Старт'; } else tTimeout = setTimeout(tLoop, 100); }
+    tT.onclick = function(){ if (tRun){ tRun = false; clearTimeout(tTimeout); tT.textContent = 'Старт'; } else { if (tLeft <= 0) tLeft = 60; tRun = true; tLoop(); tT.textContent = 'Пауза'; } };
+    tR.onclick = function(){ tRun = false; clearTimeout(tTimeout); tLeft = 0; tDisp.textContent = '00:00'; tT.textContent = 'Старт'; };
+    wrap._cleanup = function(){ running = false; clearTimeout(tTimeout); cancelAnimationFrame(swRAF); };
+    return wrap;
+  }
+});
+
+/* CALENDAR */
+reg('calendar', {
+  name:'Календарь', icon:'📅', width:720, height:600, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app');
+    wrap.style.cssText = 'padding:20px;gap:14px;display:flex;flex-direction:column;flex:1;min-height:0';
+    var cur = new Date();
+    var head = ce('div'); head.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:10px';
+    var title = ce('div'); title.style.cssText = 'font-size:19px;font-weight:600;text-transform:capitalize';
+    var nav = ce('div'); nav.style.cssText = 'display:flex;gap:4px';
+    var bT = ce('button', 'btn sm', 'Сегодня');
+    var bP = ce('button', 'icon-btn', '‹');
+    var bN = ce('button', 'icon-btn', '›');
+    nav.appendChild(bT); nav.appendChild(bP); nav.appendChild(bN);
+    head.appendChild(title); head.appendChild(nav);
+    var grid = ce('div'); grid.style.cssText = 'display:grid;grid-template-columns:repeat(7,1fr);gap:4px;flex:1;min-height:0';
+    wrap.appendChild(head); wrap.appendChild(grid);
+    var DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+    function render(){
+      grid.innerHTML = '';
+      DOW.forEach(function(d){ var e = ce('div', '', d); e.style.cssText = 'text-align:center;font-size:11px;color:var(--text3);padding:6px 0;font-weight:600;text-transform:uppercase'; grid.appendChild(e); });
+      var y = cur.getFullYear(), m = cur.getMonth();
+      title.textContent = cur.toLocaleDateString('ru-RU', { month:'long', year:'numeric' });
+      var first = new Date(y, m, 1); var sd = (first.getDay() + 6) % 7;
+      var dim = new Date(y, m+1, 0).getDate(); var dip = new Date(y, m, 0).getDate();
+      var today = new Date(); var isCur = today.getMonth() === m && today.getFullYear() === y;
+      for (var i = sd - 1; i >= 0; i--){ var e1 = ce('div', '', String(dip - i)); e1.style.cssText = 'padding:8px;border-radius:9px;background:var(--surface2);opacity:.32;text-align:center;font-size:12.5px'; grid.appendChild(e1); }
+      for (var d = 1; d <= dim; d++){
+        (function(d){
+          var isT = isCur && today.getDate() === d;
+          var c = ce('div', '', String(d));
+          c.style.cssText = 'padding:8px;border-radius:9px;background:' + (isT ? 'linear-gradient(135deg,#7c6cf5,#c084fc)' : 'var(--surface2)') + ';color:' + (isT ? '#fff' : 'inherit') + ';font-size:12.5px;font-weight:500;text-align:center';
+          grid.appendChild(c);
+        })(d);
+      }
+      var rem = (7 - ((sd + dim) % 7)) % 7;
+      for (var k = 1; k <= rem; k++){ var e2 = ce('div', '', String(k)); e2.style.cssText = 'padding:8px;border-radius:9px;background:var(--surface2);opacity:.32;text-align:center;font-size:12.5px'; grid.appendChild(e2); }
+    }
+    bP.onclick = function(){ cur = new Date(cur.getFullYear(), cur.getMonth()-1, 1); render(); };
+    bN.onclick = function(){ cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1); render(); };
+    bT.onclick = function(){ cur = new Date(); render(); };
+    render();
+    return wrap;
+  }
+});
+
+/* PAINT */
+reg('paint', {
+  name:'Paint', icon:'🎨', width:860, height:620, desktop:true,
+  build: function(){
+    var wrap = ce('div', 'app');
+    wrap.style.cssText = 'display:flex;flex-direction:column;flex:1;min-height:0';
+    var tools = ce('div', 'app-toolbar');
+    var wrapC = ce('div'); wrapC.style.cssText = 'flex:1;position:relative;background:#1a1a22;overflow:hidden;min-height:0';
+    var canvas = ce('canvas'); canvas.style.cssText = 'position:absolute;inset:0;cursor:crosshair;touch-action:none';
+    wrapC.appendChild(canvas);
+    wrap.appendChild(tools); wrap.appendChild(wrapC);
+    var ctx = canvas.getContext('2d');
+    var tool = 'brush', color = '#7c6cf5', size = 4;
+    var drawing = false, start = null;
+    function resize(){
+      var rect = wrapC.getBoundingClientRect();
+      var img = null; try { img = canvas.width ? ctx.getImageData(0, 0, canvas.width, canvas.height) : null; } catch(e){}
+      canvas.width = rect.width; canvas.height = rect.height;
+      ctx.fillStyle = '#1a1a22'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (img) try { ctx.putImageData(img, 0, 0); } catch(e){}
+    }
+    [['brush','🖌️'],['eraser','🧽'],['line','📏'],['rect','▭'],['circle','⚪']].forEach(function(d){
+      var b = ce('button', 'icon-btn', d[1]);
+      b.onclick = function(){ tool = d[0]; $$('.icon-btn', tools).forEach(function(x){ x.style.background = ''; }); b.style.background = 'var(--accent)'; };
+      if (d[0] === tool) b.style.background = 'var(--accent)';
+      tools.appendChild(b);
+    });
+    var ci = document.createElement('input'); ci.type = 'color'; ci.value = color;
+    ci.style.cssText = 'width:34px;height:34px;border-radius:8px;border:2px solid var(--border2);cursor:pointer;padding:0;background:transparent';
+    ci.oninput = function(){ color = ci.value; };
+    tools.appendChild(ci);
+    var si = document.createElement('input'); si.type = 'range'; si.min = 1; si.max = 50; si.value = size; si.style.width = '100px';
+    si.oninput = function(){ size = +si.value; };
+    tools.appendChild(si);
+    var sp = ce('div', 'spacer'); tools.appendChild(sp);
+    var bC = ce('button', 'btn sm', '🗑');
+    var bS = ce('button', 'btn sm primary', '💾');
+    bC.onclick = function(){ ctx.fillStyle = '#1a1a22'; ctx.fillRect(0, 0, canvas.width, canvas.height); };
+    bS.onclick = function(){
+      try { var dataURL = canvas.toDataURL('image/png'); var n = prompt('Имя:', 'рисунок_' + Date.now() + '.png'); if (n){ Auth.fsWrite(['Изображения', n], dataURL).then(function(){ Notify.toast('Paint', 'Сохранено', '💾'); }); } } catch(e){}
+    };
+    tools.appendChild(bC); tools.appendChild(bS);
+    function getXY(e){ var r = canvas.getBoundingClientRect(); return { x:e.clientX - r.left, y:e.clientY - r.top }; }
+    canvas.addEventListener('pointerdown', function(e){
+      drawing = true; var xy = getXY(e); start = xy;
+      canvas.setPointerCapture(e.pointerId);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      if (tool === 'brush' || tool === 'eraser'){ ctx.beginPath(); ctx.moveTo(xy.x, xy.y); }
+    });
+    canvas.addEventListener('pointermove', function(e){
+      if (!drawing) return;
+      var xy = getXY(e);
+      if (tool === 'brush'){ ctx.strokeStyle = color; ctx.lineWidth = size; ctx.lineTo(xy.x, xy.y); ctx.stroke(); }
+      else if (tool === 'eraser'){ ctx.strokeStyle = '#1a1a22'; ctx.lineWidth = size * 2; ctx.lineTo(xy.x, xy.y); ctx.stroke(); }
+    });
+    canvas.addEventListener('pointerup', function(e){
+      if (!drawing) return; drawing = false;
+      var xy = getXY(e); ctx.strokeStyle = color; ctx.lineWidth = size;
+      if (tool === 'line'){ ctx.beginPath(); ctx.moveTo(start.x, start.y); ctx.lineTo(xy.x, xy.y); ctx.stroke(); }
+      else if (tool === 'rect'){ ctx.strokeRect(start.x, start.y, xy.x - start.x, xy.y - start.y); }
+      else if (tool === 'circle'){ var rx = Math.abs(xy.x - start.x)/2, ry = Math.abs(xy.y - start.y)/2; ctx.beginPath(); ctx.ellipse((start.x + xy.x)/2, (start.y + xy.y)/2, rx, ry, 0, 0, Math.PI*2); ctx.stroke(); }
+    });
+    setTimeout(resize, 40);
+    window.addEventListener('resize', resize);
+    wrap._cleanup = function(){ window.removeEventListener('resize', resize); };
+    return wrap;
+  }
+});
+
+/* PHOTOS */
+reg('photos', {
+  name:'Фото', icon:'🖼️', width:800, height:580, desktop:true,
+  build: function(){
+    var wrap = ce('div', 'app');
+    wrap.style.cssText = 'background:var(--surface2);padding:14px;overflow-y:auto;flex:1';
+    var grid = ce('div'); grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px';
+    wrap.appendChild(grid);
+    function render(){
+      grid.innerHTML = '';
+      var list = FS.listLocal(Auth.fs, ['Изображения']);
+      var imgs = list.filter(function(item){ return item.node.type === 'file' && item.node.content && item.node.content.indexOf('data:image') === 0; });
+      if (!imgs.length){ grid.appendChild(ce('div', 'app-empty', 'Нет изображений. Нарисуй в Paint.')); return; }
+      imgs.forEach(function(item){
+        var t = ce('div'); t.style.cssText = 'aspect-ratio:1;border-radius:12px;overflow:hidden;cursor:pointer;background:linear-gradient(135deg,#7c6cf5,#c084fc)';
+        var img = document.createElement('img'); img.src = item.node.content;
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+        t.appendChild(img);
+        t.onclick = function(){
+          var v = ce('div');
+          v.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,.94);z-index:5;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:20px';
+          var i2 = document.createElement('img'); i2.src = item.node.content;
+          i2.style.cssText = 'max-width:88%;max-height:78%;border-radius:12px';
+          var close = ce('button', 'btn primary', 'Закрыть');
+          close.onclick = function(){ if (v.parentNode) v.parentNode.removeChild(v); };
+          v.appendChild(i2); v.appendChild(close);
+          v.onclick = function(e){ if (e.target === v) v.parentNode.removeChild(v); };
+          wrap.appendChild(v);
+        };
+        grid.appendChild(t);
+      });
+    }
+    render();
+    return wrap;
+  }
+});
+
+/* SNAKE */
+reg('snake', {
+  name:'Змейка', icon:'🐍', width:500, height:560, desktop:true, single:true,
+  build: function(win){
+    var wrap = ce('div', 'app game-wrap');
+    var hud = ce('div', 'game-hud');
+    hud.innerHTML = '<div>Счёт: <b id="sn-sc">0</b></div>';
+    var canvas = ce('canvas');
+    var CELL = 22, COLS = 18, ROWS = 18;
+    canvas.width = COLS * CELL; canvas.height = ROWS * CELL;
+    var ctx = canvas.getContext('2d');
+    wrap.appendChild(hud); wrap.appendChild(canvas);
+    wrap.appendChild(ce('div', 'game-hint', 'Стрелки/WASD · Enter — заново'));
+    var snake, dir, nextDir, food, pts, alive, speed, lastTick, raf;
+    function reset(){ snake = [{x:9,y:9},{x:8,y:9},{x:7,y:9}]; dir = {x:1,y:0}; nextDir = {x:1,y:0}; pts = 0; alive = true; speed = 110; lastTick = 0; placeFood(); draw(); updHud(); }
+    function placeFood(){ var t = 0; do { food = { x: Math.floor(Math.random()*COLS), y: Math.floor(Math.random()*ROWS) }; t++; } while (t < 100 && snake.some(function(s){ return s.x === food.x && s.y === food.y; })); }
+    function updHud(){ var sc = $('#sn-sc', wrap); if (sc) sc.textContent = pts; }
+    function draw(){
+      ctx.fillStyle = '#0a0a14'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(255,255,255,.04)';
+      for (var i = 1; i < COLS; i++){ ctx.beginPath(); ctx.moveTo(i*CELL, 0); ctx.lineTo(i*CELL, canvas.height); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, i*CELL); ctx.lineTo(canvas.width, i*CELL); ctx.stroke(); }
+      ctx.fillStyle = '#ec4899'; ctx.beginPath(); ctx.arc(food.x*CELL + CELL/2, food.y*CELL + CELL/2, CELL/2 - 3, 0, Math.PI*2); ctx.fill();
+      snake.forEach(function(s, i){ var t = i / snake.length; ctx.fillStyle = i === 0 ? '#c084fc' : 'hsl(' + (260 - t*40) + ',75%,' + (62 - t*18) + '%)'; ctx.fillRect(s.x*CELL + 1.5, s.y*CELL + 1.5, CELL-3, CELL-3); });
+      if (!alive){ ctx.fillStyle = 'rgba(0,0,0,.75)'; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = '600 26px system-ui'; ctx.fillText('Игра окончена', canvas.width/2, canvas.height/2 - 10); ctx.font = '14px system-ui'; ctx.fillText('Счёт: ' + pts + ' — Enter', canvas.width/2, canvas.height/2 + 22); }
+    }
+    function step(){
+      if (!alive) return;
+      dir = nextDir;
+      var h = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+      if (h.x < 0 || h.y < 0 || h.x >= COLS || h.y >= ROWS || snake.some(function(s){ return s.x === h.x && s.y === h.y; })){ alive = false; Sound.error(); draw(); return; }
+      snake.unshift(h);
+      if (h.x === food.x && h.y === food.y){ pts += 10; if (snake.length % 5 === 0) speed = Math.max(55, speed - 4); Sound.beep(1200, 0.05, 'sine', 0.03); placeFood(); } else snake.pop();
+      updHud(); draw();
+    }
+    function loop(ts){ if (ts - lastTick > speed && alive){ lastTick = ts; step(); } raf = requestAnimationFrame(loop); }
+    function onKey(e){
+      if (WM.activeId !== win.id) return;
+      var k = e.key.toLowerCase();
+      var M = { arrowup:{x:0,y:-1},w:{x:0,y:-1},arrowdown:{x:0,y:1},s:{x:0,y:1},arrowleft:{x:-1,y:0},a:{x:-1,y:0},arrowright:{x:1,y:0},d:{x:1,y:0} };
+      if (M[k]){ var nd = M[k]; if (nd.x !== -dir.x || nd.y !== -dir.y) nextDir = nd; e.preventDefault(); }
+      if (k === 'enter' && !alive) reset();
+    }
+    document.addEventListener('keydown', onKey);
+    reset(); raf = requestAnimationFrame(loop);
+    wrap._cleanup = function(){ document.removeEventListener('keydown', onKey); cancelAnimationFrame(raf); };
+    return wrap;
+  }
+});
+
+/* G2048 */
+reg('g2048', {
+  name:'2048', icon:'🔢', width:440, height:560, desktop:true, single:true,
+  build: function(win){
+    var wrap = ce('div', 'app game-wrap');
+    var hud = ce('div', 'game-hud');
+    hud.innerHTML = '<div>Очки: <b id="g2-s">0</b></div>';
+    var grid = ce('div', 'g2048-grid');
+    wrap.appendChild(hud); wrap.appendChild(grid);
+    wrap.appendChild(ce('div', 'game-hint', 'Стрелки/WASD · R — заново'));
+    var board, score, over;
+    var COLORS = { 0:'var(--surface2)', 2:'#eee4da', 4:'#ede0c8', 8:'#f2b179', 16:'#f59563', 32:'#f67c5f', 64:'#f65e3b', 128:'#edcf72', 256:'#edcc61', 512:'#edc850', 1024:'#edc53f', 2048:'#edc22e' };
+    function reset(){ board = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]; score = 0; over = false; addRandom(); addRandom(); render(); }
+    function addRandom(){ var empty = []; for (var r = 0; r < 4; r++) for (var c = 0; c < 4; c++) if (!board[r][c]) empty.push([r,c]); if (!empty.length) return; var p = empty[Math.floor(Math.random() * empty.length)]; board[p[0]][p[1]] = Math.random() < 0.9 ? 2 : 4; }
+    function slide(row){ var arr = row.filter(function(v){ return v; }); for (var i = 0; i < arr.length - 1; i++){ if (arr[i] === arr[i+1]){ arr[i] *= 2; score += arr[i]; arr.splice(i+1, 1); } } while (arr.length < 4) arr.push(0); return arr; }
+    function moveDir(dir){
+      if (over) return;
+      var before = JSON.stringify(board);
+      if (dir === 'left' || dir === 'right'){ for (var r = 0; r < 4; r++){ var row = board[r].slice(); if (dir === 'right') row.reverse(); row = slide(row); if (dir === 'right') row.reverse(); board[r] = row; } }
+      else { for (var c = 0; c < 4; c++){ var col = [board[0][c], board[1][c], board[2][c], board[3][c]]; if (dir === 'down') col.reverse(); col = slide(col); if (dir === 'down') col.reverse(); for (var r2 = 0; r2 < 4; r2++) board[r2][c] = col[r2]; } }
+      if (JSON.stringify(board) !== before){ addRandom(); render(); if (!canMove()){ over = true; Notify.toast('2048', 'Очки: ' + score, '🔢'); } }
+    }
+    function canMove(){ for (var r = 0; r < 4; r++) for (var c = 0; c < 4; c++){ if (!board[r][c]) return true; if (r < 3 && board[r][c] === board[r+1][c]) return true; if (c < 3 && board[r][c] === board[r][c+1]) return true; } return false; }
+    function render(){ var s = $('#g2-s', wrap); if (s) s.textContent = score; grid.innerHTML = ''; for (var r = 0; r < 4; r++) for (var c = 0; c < 4; c++){ var v = board[r][c]; var cell = ce('div', 'g2048-cell', v || ''); cell.style.background = COLORS[v] || '#3c3a32'; if (v >= 8) cell.style.color = '#fff'; grid.appendChild(cell); } }
+    function onKey(e){ if (WM.activeId !== win.id) return; var k = e.key.toLowerCase(); if (k === 'r'){ reset(); e.preventDefault(); return; } var M = { arrowleft:'left', a:'left', arrowright:'right', d:'right', arrowup:'up', w:'up', arrowdown:'down', s:'down' }; if (M[k]){ moveDir(M[k]); e.preventDefault(); } }
+    document.addEventListener('keydown', onKey);
+    reset();
+    wrap._cleanup = function(){ document.removeEventListener('keydown', onKey); };
+    return wrap;
+  }
+});
+
+/* MINES */
+reg('mines', {
+  name:'Сапёр', icon:'💣', width:460, height:560, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app game-wrap');
+    var SIZE = 9, MINES = 10;
+    var grid, rev, flag, dead, won, flagsLeft;
+    var hud = ce('div', 'game-hud');
+    hud.innerHTML = '<div>💣 <b id="m-f">10</b></div>';
+    var gridEl = ce('div', 'mines-grid');
+    gridEl.style.gridTemplateColumns = 'repeat(' + SIZE + ', 32px)';
+    var bR = ce('button', 'btn primary', 'Новая игра');
+    bR.onclick = init;
+    wrap.appendChild(hud); wrap.appendChild(gridEl); wrap.appendChild(bR);
+    function init(){
+      grid = []; rev = []; flag = [];
+      for (var r = 0; r < SIZE; r++){ grid[r] = []; rev[r] = []; flag[r] = []; for (var c = 0; c < SIZE; c++){ grid[r][c] = 0; rev[r][c] = false; flag[r][c] = false; } }
+      dead = false; won = false; flagsLeft = MINES;
+      var placed = 0;
+      while (placed < MINES){ var r2 = Math.floor(Math.random()*SIZE), c2 = Math.floor(Math.random()*SIZE); if (grid[r2][c2] !== -1){ grid[r2][c2] = -1; placed++; } }
+      for (var r3 = 0; r3 < SIZE; r3++) for (var c3 = 0; c3 < SIZE; c3++){
+        if (grid[r3][c3] === -1) continue;
+        var n = 0;
+        for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++){ var nr = r3+dr, nc = c3+dc; if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE && grid[nr][nc] === -1) n++; }
+        grid[r3][c3] = n;
+      }
+      render();
+    }
+    function reveal(r, c){
+      if (r < 0 || c < 0 || r >= SIZE || c >= SIZE) return;
+      if (rev[r][c] || flag[r][c] || dead) return;
+      rev[r][c] = true;
+      if (grid[r][c] === -1){ dead = true; Sound.error(); return; }
+      if (grid[r][c] === 0){ for (var dr = -1; dr <= 1; dr++) for (var dc = -1; dc <= 1; dc++) reveal(r + dr, c + dc); }
+    }
+    function checkWin(){ var cov = 0; for (var r = 0; r < SIZE; r++) for (var c = 0; c < SIZE; c++) if (!rev[r][c]) cov++; if (cov === MINES){ won = true; Sound.success(); Notify.toast('Сапёр', 'Победа!', '💣'); } }
+    function render(){
+      var f = $('#m-f', wrap); if (f) f.textContent = flagsLeft;
+      gridEl.innerHTML = '';
+      for (var r = 0; r < SIZE; r++) for (var c = 0; c < SIZE; c++){
+        var cell = ce('div', 'mine-cell');
+        if (rev[r][c]){ cell.classList.add('rev'); if (grid[r][c] === -1){ cell.classList.add('boom'); cell.textContent = '💥'; } else if (grid[r][c] > 0){ cell.textContent = grid[r][c]; cell.classList.add('c' + grid[r][c]); } }
+        else if (flag[r][c]){ cell.classList.add('flag'); cell.textContent = '🚩'; }
+        (function(r, c, cell){
+          cell.onclick = function(){ if (rev[r][c] || flag[r][c] || dead || won) return; reveal(r, c); if (!dead) checkWin(); render(); };
+          cell.oncontextmenu = function(e){ e.preventDefault(); if (rev[r][c] || dead || won) return; if (!flag[r][c] && flagsLeft === 0) return; flag[r][c] = !flag[r][c]; flagsLeft += flag[r][c] ? -1 : 1; render(); };
+        })(r, c, cell);
+        gridEl.appendChild(cell);
+      }
+    }
+    init();
+    return wrap;
+  }
+});
+
+/* MEMORY */
+reg('memory', {
+  name:'Память', icon:'🧠', width:480, height:600, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app game-wrap');
+    var hud = ce('div', 'game-hud');
+    hud.innerHTML = '<div>Ходы: <b id="me-m">0</b></div><div>Пары: <b id="me-p">0</b>/8</div>';
+    var grid = ce('div', 'memory-grid');
+    wrap.appendChild(hud); wrap.appendChild(grid);
+    var icons = ['🍎','🍌','🍇','🍓','🍒','🥝','🍍','🥥'];
+    var cards = [], flipped = [], matched = 0, moves = 0, locked = false;
+    function reset(){
+      cards = icons.concat(icons);
+      for (var i = cards.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var t = cards[i]; cards[i] = cards[j]; cards[j] = t; }
+      flipped = []; matched = 0; moves = 0; locked = false; render();
+    }
+    function render(){
+      var m1 = $('#me-m', wrap); if (m1) m1.textContent = moves;
+      var m2 = $('#me-p', wrap); if (m2) m2.textContent = matched;
+      grid.innerHTML = '';
+      cards.forEach(function(ic, i){
+        var c = ce('div', 'mem-card');
+        var isM = flipped.indexOf(-i-1) >= 0; var isF = flipped.indexOf(i) >= 0;
+        if (isM){ c.classList.add('matched'); c.textContent = ic; } else if (isF){ c.classList.add('flipped'); c.textContent = ic; } else c.textContent = '?';
+        c.onclick = function(){ flip(i); };
+        grid.appendChild(c);
+      });
+    }
+    function flip(i){
+      if (locked || flipped.indexOf(i) >= 0 || flipped.indexOf(-i-1) >= 0) return;
+      Sound.beep(800, 0.03, 'sine', 0.02);
+      flipped.push(i); moves++;
+      var pos = flipped.filter(function(x){ return x >= 0; });
+      if (pos.length === 2){
+        var a = pos[0], b = pos[1];
+        if (cards[a] === cards[b]){
+          flipped = flipped.filter(function(x){ return x < 0 || (x !== a && x !== b); });
+          flipped.push(-a-1, -b-1);
+          matched++; Sound.success();
+          if (matched === 8) setTimeout(function(){ Notify.toast('Память', 'Победа за ' + moves + ' ходов!', '🧠'); }, 300);
+          render(); return;
+        } else {
+          locked = true; render();
+          setTimeout(function(){ flipped = flipped.filter(function(x){ return x < 0; }); locked = false; render(); }, 800);
+          return;
+        }
+      }
+      render();
+    }
+    reset();
+    return wrap;
+  }
+});
+
+/* TTT */
+reg('ttt', {
+  name:'Крестики', icon:'❌', width:400, height:520, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app game-wrap');
+    var hud = ce('div', 'game-hud');
+    hud.innerHTML = '<div id="tt-st">Ход: X</div>';
+    var grid = ce('div', 'ttt-grid');
+    var bR = ce('button', 'btn', 'Новая игра');
+    bR.onclick = reset;
+    wrap.appendChild(hud); wrap.appendChild(grid); wrap.appendChild(bR);
+    var board, turn, done;
+    function reset(){ board = ['','','','','','','','','']; turn = 'X'; done = false; render(); }
+    function winner(){
+      var L = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      for (var i = 0; i < L.length; i++){ var a = L[i][0], b = L[i][1], c = L[i][2]; if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a]; }
+      return board.every(function(v){ return v; }) ? 'draw' : null;
+    }
+    function ai(){
+      var L = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      var empty = [];
+      for (var i = 0; i < 9; i++) if (!board[i]) empty.push(i);
+      var players = ['O','X'];
+      for (var p = 0; p < players.length; p++) for (var k = 0; k < empty.length; k++){
+        var i2 = empty[k]; var t = board.slice(); t[i2] = players[p];
+        for (var li = 0; li < L.length; li++){ var a = L[li][0], b = L[li][1], c = L[li][2]; if (t[a] && t[a] === t[b] && t[a] === t[c]) return i2; }
+      }
+      if (empty.indexOf(4) >= 0) return 4;
+      return empty[Math.floor(Math.random() * empty.length)];
+    }
+    function play(i){
+      if (done || board[i]) return;
+      board[i] = turn; Sound.beep(700, 0.04, 'sine', 0.025);
+      turn = turn === 'X' ? 'O' : 'X';
+      render();
+      if (winner()){ done = true; render(); return; }
+      if (turn === 'O'){ setTimeout(function(){ var i2 = ai(); if (i2 == null) return; board[i2] = 'O'; turn = 'X'; render(); if (winner()) done = true; }, 350); }
+    }
+    function render(){
+      var w = winner();
+      var s = $('#tt-st', wrap); if (s) s.textContent = w === 'draw' ? 'Ничья!' : w ? (w + ' победил!') : ('Ход: ' + turn);
+      grid.innerHTML = '';
+      board.forEach(function(v, i){ var c = ce('div', 'ttt-cell' + (v === 'X' ? ' x' : v === 'O' ? ' o' : ''), v); c.onclick = function(){ play(i); }; grid.appendChild(c); });
+    }
+    reset();
+    return wrap;
+  }
+});
+
+/* STICKY */
+reg('sticky', {
+  name:'Стикеры', icon:'🗒️', width:820, height:600, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app sticky-app');
+    var COLORS = ['#ffe066','#7be2c5','#ffa8d8','#a3d5ff','#c2a3ff','#ffc4a3'];
+    function save(){ Auth.saveSettings({ stickyNotes: Auth.settings.stickyNotes }); }
+    function render(){
+      wrap.innerHTML = '';
+      var notes = Auth.settings.stickyNotes || [];
+      notes.forEach(function(n, i){
+        var s = ce('div', 'sticky-note');
+        s.style.background = n.color || '#ffe066';
+        var ta = ce('textarea'); ta.value = n.text || '';
+        ta.oninput = function(){ Auth.settings.stickyNotes[i].text = ta.value; save(); };
+        var del = ce('button', 'st-close', '✕');
+        del.onclick = function(){ Auth.settings.stickyNotes.splice(i, 1); save(); render(); };
+        s.appendChild(del); s.appendChild(ta);
+        wrap.appendChild(s);
+      });
+      var add = ce('button', 'sticky-add', '＋');
+      add.onclick = function(){
+        var notes2 = Auth.settings.stickyNotes || [];
+        notes2.push({ text:'', color:COLORS[notes2.length % COLORS.length] });
+        Auth.settings.stickyNotes = notes2;
+        save(); render();
+      };
+      wrap.appendChild(add);
+    }
+    if (!Auth.settings.stickyNotes){ Auth.settings.stickyNotes = [{ text:'Привет!', color:'#ffe066' }]; save(); }
+    render();
+    return wrap;
+  }
+});
+
+/* TODO */
+reg('todo', {
+  name:'Задачи', icon:'✅', width:540, height:620, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app todo-app');
+    var inputWrap = ce('div', 'todo-input');
+    var inp = ce('input', 'input'); inp.placeholder = 'Новая задача…';
+    var bAdd = ce('button', 'btn primary', '＋');
+    inputWrap.appendChild(inp); inputWrap.appendChild(bAdd);
+    var list = ce('div', 'todo-list');
+    wrap.appendChild(inputWrap); wrap.appendChild(list);
+    function save(){ Auth.saveSettings({ todos: Auth.settings.todos }); }
+    function render(){
+      var todos = Auth.settings.todos || [];
+      list.innerHTML = '';
+      if (!todos.length){ list.appendChild(ce('div', 'app-empty', 'Список пуст')); return; }
+      todos.forEach(function(t, i){
+        var item = ce('div', 'todo-item');
+        var chk = ce('div', 'todo-check' + (t.done ? ' on' : ''));
+        chk.onclick = function(){ Auth.settings.todos[i].done = !todos[i].done; save(); render(); };
+        var txt = ce('div', 'todo-text' + (t.done ? ' done' : ''), esc(t.text));
+        txt.ondblclick = function(){ var nv = prompt('Редактировать:', t.text); if (nv !== null){ Auth.settings.todos[i].text = nv; save(); render(); } };
+        var del = ce('button', 'todo-del', '✕');
+        del.onclick = function(){ Auth.settings.todos.splice(i, 1); save(); render(); };
+        item.appendChild(chk); item.appendChild(txt); item.appendChild(del);
+        list.appendChild(item);
+      });
+    }
+    function add(){
+      var text = inp.value.trim(); if (!text) return;
+      var todos = Auth.settings.todos || [];
+      todos.push({ text:text, done:false, created:Date.now() });
+      Auth.settings.todos = todos;
+      save();
+      inp.value = ''; render();
+    }
+    bAdd.onclick = add;
+    inp.addEventListener('keydown', function(e){ if (e.key === 'Enter') add(); });
+    render();
+    return wrap;
+  }
+});
+
+/* POMODORO */
+reg('pomodoro', {
+  name:'Помодоро', icon:'🍅', width:440, height:560, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app pomodoro');
+    var phase = ce('div', 'pomo-phase', 'Работа');
+    var time = ce('div', 'pomo-time', '25:00');
+    var modes = ce('div', 'pomo-modes');
+    var actions = ce('div'); actions.style.cssText = 'display:flex;gap:10px;justify-content:center;flex-wrap:wrap';
+    var bStart = ce('button', 'btn primary', '▶ Старт');
+    var bReset = ce('button', 'btn', 'Сброс');
+    actions.appendChild(bStart); actions.appendChild(bReset);
+    wrap.appendChild(phase); wrap.appendChild(time); wrap.appendChild(modes); wrap.appendChild(actions);
+    var MODES = { work:{d:25*60,n:'Работа'}, short:{d:5*60,n:'Перерыв'}, long:{d:15*60,n:'Отдых'} };
+    var curMode = 'work', left = MODES.work.d, running = false, timeout;
+    function renderModes(){
+      modes.innerHTML = '';
+      for (var k in MODES) if (MODES.hasOwnProperty(k)){
+        (function(k){
+          var b = ce('button', 'pomo-mode' + (k === curMode ? ' on' : ''), MODES[k].n);
+          b.onclick = function(){ curMode = k; left = MODES[k].d; running = false; clearTimeout(timeout); bStart.textContent = '▶ Старт'; phase.textContent = MODES[k].n; updateTime(); renderModes(); };
+          modes.appendChild(b);
+        })(k);
+      }
+    }
+    function updateTime(){ var m = Math.floor(left / 60), s = Math.floor(left % 60); time.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0'); }
+    function loop(){
+      if (!running) return;
+      left -= 0.1;
+      if (left <= 0){ running = false; Sound.success(); Notify.toast('Помодоро', MODES[curMode].n + ' завершено!', '🍅'); left = MODES[curMode].d; bStart.textContent = '▶ Старт'; updateTime(); return; }
+      updateTime();
+      timeout = setTimeout(loop, 100);
+    }
+    bStart.onclick = function(){ if (running){ running = false; clearTimeout(timeout); bStart.textContent = '▶ Старт'; } else { running = true; loop(); bStart.textContent = '⏸ Пауза'; } };
+    bReset.onclick = function(){ running = false; clearTimeout(timeout); left = MODES[curMode].d; bStart.textContent = '▶ Старт'; updateTime(); };
+    renderModes(); updateTime();
+    wrap._cleanup = function(){ running = false; clearTimeout(timeout); };
+    return wrap;
+  }
+});
+
+/* TASKMGR */
+reg('taskmgr', {
+  name:'Диспетчер', icon:'📊', width:720, height:540, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app tm');
+    var stats = ce('div', 'tm-stats');
+    var list = ce('div', 'tm-list');
+    var footer = ce('div', 'tm-footer');
+    var bEnd = ce('button', 'btn danger sm', 'Завершить');
+    var bMinAll = ce('button', 'btn sm', 'Свернуть все');
+    footer.appendChild(bMinAll); footer.appendChild(bEnd);
+    wrap.appendChild(stats); wrap.appendChild(list); wrap.appendChild(footer);
+    var selId = null;
+    function render(){
+      var wins = [];
+      for (var id in WM.wins) if (WM.wins.hasOwnProperty(id)) wins.push(WM.wins[id]);
+      var totalMem = 0;
+      wins.forEach(function(w){ totalMem += 40 + Math.floor((w.app.width || 600) * (w.app.height || 400) / 5000); });
+      stats.innerHTML = '<div class="tm-stat"><div class="v">' + wins.length + '</div><div class="l">Приложений</div></div><div class="tm-stat"><div class="v">' + totalMem + ' МБ</div><div class="l">Память</div></div><div class="tm-stat"><div class="v">' + Object.keys(APPS).length + '</div><div class="l">Всего</div></div>';
+      list.innerHTML = '';
+      if (!wins.length){ list.appendChild(ce('div', 'app-empty', 'Нет приложений')); return; }
+      wins.forEach(function(w){
+        var mem = 40 + Math.floor((w.app.width || 600) * (w.app.height || 400) / 5000);
+        var cpu = Math.max(1, Math.floor(Math.random() * 12));
+        var row = ce('div', 'tm-row' + (selId === w.id ? ' sel' : ''));
+        row.innerHTML = '<div class="tm-name"><span>' + w.app.icon + '</span><span>' + esc(w.app.name) + '</span></div><div>' + cpu + '%</div><div>' + mem + ' МБ</div><div>' + (w.minimized ? 'Свёрнуто' : 'Работает') + '</div>';
+        (function(w){ row.onclick = function(){ selId = w.id; render(); }; row.ondblclick = function(){ if (w.minimized) WM.restore(w.id); else WM.focus(w.id); }; })(w);
+        list.appendChild(row);
+      });
+    }
+    bEnd.onclick = function(){ if (!selId) return Notify.toast('Диспетчер', 'Выберите', '⚠️'); WM.close(selId); selId = null; render(); };
+    bMinAll.onclick = function(){ WM.minimizeAll(); render(); };
+    render();
+    var iv = setInterval(render, 1500);
+    wrap._cleanup = function(){ clearInterval(iv); };
+    return wrap;
+  }
+});
+
+/* BROWSER */
+reg('browser', {
+  name:'Браузер', icon:'🌐', width:1100, height:720, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app browser-app');
+    var PROXY = '/__proxy__?url=';
+    var tabs = [], activeIdx = 0, tabSeq = 0;
+    var bookmarks = [];
+    try { bookmarks = JSON.parse(localStorage.getItem('prismos.bookmarks') || '[]'); } catch(e){ bookmarks = []; }
+
+    var tabBar = ce('div', 'browser-tabs');
+    var toolbar = ce('div', 'browser-toolbar');
+    var bBack = ce('button', 'icon-btn', '←');
+    var bFwd  = ce('button', 'icon-btn', '→');
+    var bRel  = ce('button', 'icon-btn', '⟳');
+    var bHome = ce('button', 'icon-btn', '🏠');
+    var urlWrap = ce('div', 'browser-url-wrap');
+    var urlSec = ce('span', 'browser-url-secure', '🏠');
+    var urlInput = ce('input', 'browser-url');
+    urlInput.placeholder = 'Адрес или поисковый запрос…';
+    urlInput.spellcheck = false;
+    var urlActions = ce('div', 'browser-url-actions');
+    var bStar  = ce('button', 'icon-btn', '☆');
+    var bExt   = ce('button', 'icon-btn', '↗');
+    urlActions.appendChild(bStar);
+    urlActions.appendChild(bExt);
+    urlWrap.appendChild(urlSec); urlWrap.appendChild(urlInput); urlWrap.appendChild(urlActions);
+    toolbar.appendChild(bBack); toolbar.appendChild(bFwd); toolbar.appendChild(bRel); toolbar.appendChild(bHome); toolbar.appendChild(urlWrap);
+    var bookmarkBar = ce('div', 'browser-bookmarks');
+    var content = ce('div', 'browser-content');
+    var status = ce('div', 'browser-status');
+    var statusL = ce('span', '', 'Готово');
+    var statusR = ce('span', '', '');
+    status.appendChild(statusL); status.appendChild(statusR);
+    wrap.appendChild(tabBar); wrap.appendChild(toolbar); wrap.appendChild(bookmarkBar); wrap.appendChild(content); wrap.appendChild(status);
+
+    function hostOf(u){ try { return u.replace(/^https?:\/\//, '').split('/')[0].split('?')[0]; } catch(e){ return u; } }
+    function isSecure(u){ return u.indexOf('https://') === 0; }
+    function normalize(v){
+      v = (v || '').trim();
+      if (!v) return '';
+      if (/^https?:\/\//i.test(v)) return v;
+      var noSpace = v.indexOf(' ') < 0, hasDot = v.indexOf('.') > 0, isLatin = !/[а-яё]/i.test(v);
+      if (noSpace && hasDot && isLatin) return 'https://' + v;
+      return 'https://duckduckgo.com/?q=' + encodeURIComponent(v);
+    }
+
+    function buildHome(){
+      var h = ce('div', 'browser-home');
+      h.innerHTML = '<div class="browser-home-box"><div class="browser-home-logo">PRISM</div><div class="browser-home-sub">Серверный браузер</div><div class="browser-home-search"><input placeholder="Адрес или запрос…" spellcheck="false"></div><div class="browser-home-tiles"><div class="browser-tile" data-u="https://www.youtube.com"><div class="ic">▶️</div><div class="nm">YouTube</div></div><div class="browser-tile" data-u="https://duckduckgo.com"><div class="ic">🔍</div><div class="nm">DuckDuckGo</div></div><div class="browser-tile" data-u="https://ru.wikipedia.org"><div class="ic">📚</div><div class="nm">Wikipedia</div></div><div class="browser-tile" data-u="https://vk.com"><div class="ic">💬</div><div class="nm">ВКонтакте</div></div><div class="browser-tile" data-u="https://github.com"><div class="ic">🐙</div><div class="nm">GitHub</div></div><div class="browser-tile" data-u="https://habr.com"><div class="ic">📰</div><div class="nm">Habr</div></div><div class="browser-tile" data-u="https://www.reddit.com"><div class="ic">👽</div><div class="nm">Reddit</div></div><div class="browser-tile" data-u="https://stackoverflow.com"><div class="ic">💻</div><div class="nm">StackOverflow</div></div></div></div>';
+      setTimeout(function(){
+        var inp = h.querySelector('input');
+        if (inp) inp.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ var v = inp.value.trim(); if (v) navigate(normalize(v)); } });
+        var ts = h.querySelectorAll('.browser-tile');
+        for (var i = 0; i < ts.length; i++){ (function(t){ t.onclick = function(){ navigate(t.getAttribute('data-u')); }; })(ts[i]); }
+      }, 0);
+      return h;
+    }
+
+    function newTab(){ tabs.push({ id:++tabSeq, title:'Новая вкладка', url:'', history:[], hIdx:-1, mode:'home', frame:null, home:null }); return tabs.length - 1; }
+    function switchTab(idx){
+      if (idx < 0 || idx >= tabs.length) return;
+      activeIdx = idx;
+      for (var i = 0; i < tabs.length; i++){
+        var t = tabs[i], a = (i === idx);
+        if (t.frame) t.frame.style.display = a ? 'block' : 'none';
+        if (t.home) t.home.style.display = a ? 'block' : 'none';
+      }
+      renderTabs(); renderToolbar();
+    }
+    function closeTab(idx){
+      if (tabs.length <= 1) return;
+      clearTab(tabs[idx]);
+      tabs.splice(idx, 1);
+      if (activeIdx >= tabs.length) activeIdx = tabs.length - 1;
+      else if (activeIdx > idx) activeIdx--;
+      switchTab(activeIdx);
+    }
+    function clearTab(t){
+      if (t.frame && t.frame.parentNode) t.frame.parentNode.removeChild(t.frame);
+      if (t.home && t.home.parentNode) t.home.parentNode.removeChild(t.home);
+      t.frame = null; t.home = null;
+    }
+
+    function navigate(url){
+      if (!url) return;
+      var tab = tabs[activeIdx]; if (!tab) return;
+      tab.history = tab.history.slice(0, tab.hIdx + 1);
+      tab.history.push(url);
+      tab.hIdx = tab.history.length - 1;
+      tab.url = url;
+      loadUrl(tab, url);
+      renderTabs(); renderToolbar();
+    }
+    function loadUrl(tab, url){
+      clearTab(tab);
+      var iframe = ce('iframe', 'browser-frame');
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads');
+      iframe.setAttribute('referrerpolicy', 'no-referrer-when-downgrade');
+      statusL.textContent = '⚡ Загрузка через сервер: ' + hostOf(url);
+      iframe.addEventListener('load', function(){
+        statusL.textContent = '✓ Загружено: ' + hostOf(url);
+        tab.title = hostOf(url);
+        try { var t = iframe.contentDocument && iframe.contentDocument.title; if (t && t.length > 1 && t.length < 80){ tab.title = t; renderTabs(); } } catch(e){}
+      });
+      tab.mode = 'web'; tab.frame = iframe; tab.title = hostOf(url);
+      content.appendChild(iframe);
+      try { iframe.src = PROXY + encodeURIComponent(url); } catch(e){}
+    }
+    function goBack(){ var t = tabs[activeIdx]; if (!t || t.hIdx <= 0) return; t.hIdx--; t.url = t.history[t.hIdx]; loadUrl(t, t.url); renderToolbar(); }
+    function goForward(){ var t = tabs[activeIdx]; if (!t || t.hIdx >= t.history.length - 1) return; t.hIdx++; t.url = t.history[t.hIdx]; loadUrl(t, t.url); renderToolbar(); }
+    function reload(){ var t = tabs[activeIdx]; if (!t) return; if (t.url) loadUrl(t, t.url); else goHome(); }
+    function goHome(){
+      var t = tabs[activeIdx]; if (!t) return;
+      clearTab(t);
+      t.mode = 'home'; t.url = ''; t.title = 'Новая вкладка';
+      t.home = buildHome();
+      content.appendChild(t.home);
+      renderTabs(); renderToolbar();
+    }
+
+    function renderTabs(){
+      tabBar.innerHTML = '';
+      for (var i = 0; i < tabs.length; i++){
+        (function(i){
+          var t = tabs[i];
+          var el = ce('div', 'browser-tab' + (i === activeIdx ? ' active' : ''));
+          var fav = t.mode === 'home' ? '🏠' : (isSecure(t.url) ? '🔒' : '🌐');
+          el.innerHTML = '<span class="tab-favicon">' + fav + '</span><span class="tab-title">' + esc(t.title || 'Новая вкладка') + '</span><button class="tab-close" title="Закрыть">✕</button>';
+          el.onclick = function(e){ if (!e.target.classList.contains('tab-close')) switchTab(i); };
+          el.querySelector('.tab-close').onclick = function(e){ e.stopPropagation(); closeTab(i); };
+          tabBar.appendChild(el);
+        })(i);
+      }
+      var nb = ce('button', 'browser-tab-new', '＋');
+      nb.title = 'Новая вкладка';
+      nb.onclick = function(){ newTab(); switchTab(tabs.length - 1); };
+      tabBar.appendChild(nb);
+    }
+    function renderToolbar(){
+      var t = tabs[activeIdx]; if (!t) return;
+      urlInput.value = t.url || '';
+      urlSec.textContent = t.mode === 'home' ? '🏠' : (isSecure(t.url) ? '🔒' : '🔓');
+      bBack.style.opacity = t.hIdx > 0 ? '1' : '.35';
+      bFwd.style.opacity = t.hIdx < t.history.length - 1 ? '1' : '.35';
+      var bm = false;
+      for (var i = 0; i < bookmarks.length; i++) if (bookmarks[i].url === t.url && t.url){ bm = true; break; }
+      bStar.textContent = bm ? '★' : '☆';
+      bStar.style.color = bm ? '#fbbf24' : '';
+    }
+    function renderBookmarks(){
+      bookmarkBar.innerHTML = '';
+      if (!bookmarks.length){
+        var em = ce('span', '', '⭐ Нажми ☆ в адресной строке, чтобы добавить закладку');
+        em.style.cssText = 'font-size:11.5px;color:var(--text3);padding:0 8px';
+        bookmarkBar.appendChild(em); return;
+      }
+      for (var i = 0; i < bookmarks.length; i++){
+        (function(i){
+          var bm = bookmarks[i];
+          var item = ce('div', 'browser-bookmark');
+          item.innerHTML = '<span>🔖</span><span>' + esc(bm.title || hostOf(bm.url)) + '</span><button class="browser-bookmark-del" title="Удалить">✕</button>';
+          item.onclick = function(e){ if (!e.target.classList.contains('browser-bookmark-del')) navigate(bm.url); };
+          item.querySelector('.browser-bookmark-del').onclick = function(e){
+            e.stopPropagation();
+            bookmarks.splice(i, 1);
+            try { localStorage.setItem('prismos.bookmarks', JSON.stringify(bookmarks)); } catch(err){}
+            renderBookmarks(); renderToolbar();
+          };
+          bookmarkBar.appendChild(item);
+        })(i);
+      }
+    }
+
+    bBack.onclick = goBack;
+    bFwd.onclick = goForward;
+    bRel.onclick = reload;
+    bHome.onclick = goHome;
+    urlInput.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ var v = urlInput.value.trim(); if (v) navigate(normalize(v)); } });
+    urlInput.addEventListener('focus', function(){ urlInput.select(); });
+    bStar.onclick = function(){
+      var t = tabs[activeIdx];
+      if (!t || !t.url) return Notify.toast('Браузер', 'Сначала открой страницу', '⭐');
+      var idx = -1;
+      for (var i = 0; i < bookmarks.length; i++) if (bookmarks[i].url === t.url){ idx = i; break; }
+      if (idx >= 0){ bookmarks.splice(idx, 1); Notify.toast('Браузер', 'Удалено', '☆'); }
+      else { bookmarks.push({ title:t.title || hostOf(t.url), url:t.url }); Notify.toast('Браузер', 'Добавлено', '★'); }
+      try { localStorage.setItem('prismos.bookmarks', JSON.stringify(bookmarks)); } catch(e){}
+      renderBookmarks(); renderToolbar();
+    };
+    bExt.onclick = function(){ var t = tabs[activeIdx]; if (t && t.url) window.open(t.url, '_blank', 'noopener'); };
+
+    var winId = null;
+    var onKey = function(e){
+      if (WM.activeId !== winId) return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't'){ e.preventDefault(); newTab(); switchTab(tabs.length - 1); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'w'){ e.preventDefault(); closeTab(activeIdx); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l'){ e.preventDefault(); urlInput.focus(); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r'){ e.preventDefault(); reload(); }
+      if (e.altKey && e.key === 'ArrowLeft'){ e.preventDefault(); goBack(); }
+      if (e.altKey && e.key === 'ArrowRight'){ e.preventDefault(); goForward(); }
+    };
+    document.addEventListener('keydown', onKey);
+    wrap.addEventListener('pointerdown', function(){ winId = WM.activeId; }, true);
+    setTimeout(function(){ winId = WM.activeId; }, 100);
+    wrap._cleanup = function(){ document.removeEventListener('keydown', onKey); };
+
+    newTab();
+    switchTab(0);
+    renderBookmarks();
+    return wrap;
+  }
+});
+
+/* SETTINGS */
+reg('settings', {
+  name:'Настройки', icon:'⚙️', width:920, height:640, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app settings');
+    var nav = ce('div', 'set-nav');
+    var main = ce('div', 'set-main');
+    wrap.appendChild(nav); wrap.appendChild(main);
+    var SECTIONS = [
+      { id:'appearance', ic:'🎨', name:'Внешний вид' },
+      { id:'desktop', ic:'🖥️', name:'Рабочий стол' },
+      { id:'account', ic:'👤', name:'Аккаунт' },
+      { id:'apps', ic:'📱', name:'Приложения' },
+      { id:'system', ic:'⚙️', name:'Система' },
+      { id:'about', ic:'ℹ️', name:'О системе' }
+    ];
+    var current = 'appearance';
+    function renderNav(){
+      nav.innerHTML = '';
+      SECTIONS.forEach(function(s){
+        var item = ce('div', 'set-nav-item' + (s.id === current ? ' active' : ''), '<span class="ic">' + s.ic + '</span><span>' + s.name + '</span>');
+        item.onclick = function(){ current = s.id; renderNav(); renderMain(); };
+        nav.appendChild(item);
+      });
+    }
+    function renderMain(){
+      main.innerHTML = '';
+      var s = Auth.settings;
+      var box = ce('div', 'set-sec on');
+      main.appendChild(box);
+      if (current === 'appearance'){
+        box.innerHTML = '<h1 class="set-h1">Внешний вид</h1><p class="set-sub">Обои, акценты, темы</p><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:10px">Обои</div><div class="wp-pick" id="wp-pick"></div><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin:20px 0 10px">Акцент</div><div class="accent-pick" id="acc-pick"></div><div class="set-card"><div class="sc-ic">🌙</div><div class="sc-body"><div class="sc-t">Тёмная тема</div></div><div class="toggle' + (s.theme === 'dark' ? ' on' : '') + '" id="t-theme"></div></div><div class="set-card"><div class="sc-ic">🔊</div><div class="sc-body"><div class="sc-t">Звуки</div></div><div class="toggle' + (s.sound ? ' on' : '') + '" id="t-sound"></div></div>';
+        var wp = $('#wp-pick', box);
+        WALLPAPERS.forEach(function(w, i){
+          var sw = ce('div', 'wp-swatch ' + w.css + (s.wallpaper === i && !s.customWallpaper ? ' sel' : ''));
+          sw.title = w.name;
+          sw.onclick = function(){ Auth.saveSettings({ wallpaper:i, customWallpaper:null }); Desktop.applySettings(); renderMain(); };
+          wp.appendChild(sw);
+        });
+        var ap = $('#acc-pick', box);
+        ACCENTS.forEach(function(c){
+          var a = ce('div', 'accent' + (s.accent === c ? ' sel' : ''));
+          a.style.background = 'linear-gradient(135deg, ' + c + ', ' + hueShift(c, 30) + ')';
+          a.onclick = function(){ Auth.saveSettings({ accent:c }); Desktop.applySettings(); renderMain(); };
+          ap.appendChild(a);
+        });
+        var t1 = $('#t-theme', box);
+        t1.onclick = function(){ var v = !t1.classList.contains('on'); t1.classList.toggle('on', v); Auth.saveSettings({ theme: v ? 'dark' : 'light' }); Desktop.applySettings(); };
+        var t2 = $('#t-sound', box);
+        t2.onclick = function(){ var v = !t2.classList.contains('on'); t2.classList.toggle('on', v); Auth.saveSettings({ sound:v }); };
+      }
+      else if (current === 'desktop'){
+        box.innerHTML = '<h1 class="set-h1">Рабочий стол</h1><p class="set-sub">Иконки и часы</p><div class="set-card"><div class="sc-ic">🕐</div><div class="sc-body"><div class="sc-t">24-часовой формат</div></div><div class="toggle' + (s.clock24 ? ' on' : '') + '" id="t-clock"></div></div><div class="set-card clickable" id="d-arr"><div class="sc-ic">📐</div><div class="sc-body"><div class="sc-t">Упорядочить иконки</div></div><button class="btn sm">Разложить</button></div>';
+        var tc = $('#t-clock', box);
+        tc.onclick = function(){ var v = !tc.classList.contains('on'); tc.classList.toggle('on', v); Auth.saveSettings({ clock24:v }); Desktop.updateClock(); };
+        $('#d-arr', box).onclick = function(){ Desktop.arrangeIcons(); Notify.toast('Стол', 'OK', '📐'); };
+      }
+      else if (current === 'account'){
+        var u = Auth.current;
+        box.innerHTML = '<h1 class="set-h1">Аккаунт</h1><p class="set-sub">Профиль</p><div style="display:flex;gap:20px;align-items:center;margin:20px 0 26px"><div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#7c6cf5,#c084fc);display:flex;align-items:center;justify-content:center;font-size:38px">' + u.avatar + '</div><div><div style="font-size:20px;font-weight:600">' + esc(u.display) + '</div><div style="color:var(--text2);font-size:13px">@' + esc(u.name) + '</div></div></div><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:8px">Отображаемое имя</div><input class="input" id="acc-disp" value="' + esc(u.display) + '" style="margin-bottom:20px"><div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:8px">Аватар</div><div class="avatar-row" id="acc-av"></div><div class="set-card clickable" id="acc-pass"><div class="sc-ic">🔑</div><div class="sc-body"><div class="sc-t">Сменить пароль</div></div><button class="btn sm">Изменить</button></div><div class="set-card clickable" id="acc-logout"><div class="sc-ic">🚪</div><div class="sc-body"><div class="sc-t">Выйти</div></div><button class="btn sm danger">Выйти</button></div>';
+        var avBox = $('#acc-av', box);
+        AVATARS.forEach(function(a){
+          var av = ce('div', 'avatar' + (u.avatar === a ? ' sel' : ''), a);
+          av.onclick = function(){ Auth.saveProfile({ avatar:a }); Desktop.applySettings(); renderMain(); };
+          avBox.appendChild(av);
+        });
+        $('#acc-disp', box).onchange = function(e){ Auth.saveProfile({ display: e.target.value.trim() || u.name }); Desktop.applySettings(); };
+        $('#acc-pass', box).onclick = function(){
+          var oldp = prompt('Текущий пароль:');
+          if (oldp === null) return;
+          var np = prompt('Новый пароль:');
+          if (np && np.length >= 4){
+            // На сервере проверяем старый
+            API.call('/api/user/password', 'POST', { oldPass: oldp, pass: np })
+              .then(function(){ Notify.toast('Аккаунт', 'Пароль изменён', '🔐'); })
+              .catch(function(e){ Notify.toast('Ошибка', e.message, '⚠️'); });
+          }
+        };
+        $('#acc-logout', box).onclick = function(){
+          if (!confirm('Выйти?')) return;
+          for (var id in WM.wins) if (WM.wins.hasOwnProperty(id)) WM.close(id);
+          Auth.logout();
+          location.reload();
+        };
+      }
+      else if (current === 'apps'){
+        var html = '<h1 class="set-h1">Приложения</h1><p class="set-sub">Установлено: ' + Object.keys(APPS).length + '</p>';
+        for (var id in APPS) if (APPS.hasOwnProperty(id)){
+          var a = APPS[id];
+          html += '<div class="set-card clickable" data-open="' + id + '"><div class="sc-ic">' + a.icon + '</div><div class="sc-body"><div class="sc-t">' + esc(a.name) + '</div><div class="sc-d">' + (a.width || 600) + '×' + (a.height || 400) + '</div></div><button class="btn sm">Открыть</button></div>';
+        }
+        box.innerHTML = html;
+        $$('[data-open]', box).forEach(function(card){ card.onclick = function(){ var idd = card.getAttribute('data-open'); WM.create(idd, APPS[idd]); }; });
+      }
+      else if (current === 'system'){
+        box.innerHTML = '<h1 class="set-h1">Система</h1><p class="set-sub">Управление</p><div class="set-card clickable" id="s-lock"><div class="sc-ic">🔒</div><div class="sc-body"><div class="sc-t">Заблокировать</div></div></div><div class="set-card clickable" id="s-min"><div class="sc-ic">📉</div><div class="sc-body"><div class="sc-t">Свернуть все окна</div></div></div><div class="set-card clickable" id="s-reb"><div class="sc-ic">🔄</div><div class="sc-body"><div class="sc-t">Перезагрузка</div></div></div>';
+        $('#s-lock', box).onclick = function(){ showLock(); };
+        $('#s-min', box).onclick = function(){ WM.minimizeAll(); };
+        $('#s-reb', box).onclick = function(){ if (confirm('Перезагрузить?')) location.reload(); };
+      }
+      else if (current === 'about'){
+        box.innerHTML = '<h1 class="set-h1">О системе</h1><p class="set-sub">PrismOS 3.0</p><div class="info-box"><div><b>PrismOS 3.0</b> — клиент-серверная ОС</div><div>Пользователь: <b>' + esc(Auth.current.display) + '</b> (@' + esc(Auth.current.name) + ')</div><div>Приложений: <b>' + Object.keys(APPS).length + '</b></div><div>Разрешение: <b>' + window.innerWidth + ' × ' + window.innerHeight + '</b></div><div>Сервер: <b>' + location.origin + '</b></div></div>';
+      }
+    }
+    renderNav(); renderMain();
+    return wrap;
+  }
+});
+
+/* ABOUT */
+reg('about', {
+  name:'О системе', icon:'✨', width:540, height:600, desktop:true, single:true,
+  build: function(){
+    var wrap = ce('div', 'app about-app');
+    wrap.innerHTML = '<div class="about-logo"></div><h1>PrismOS</h1><div class="ver">Version 3.0</div><div class="info"><div><b>Пользователь:</b> ' + esc(Auth.current.display) + '</div><div><b>Приложений:</b> ' + Object.keys(APPS).length + '</div><div><b>Разрешение:</b> ' + window.innerWidth + ' × ' + window.innerHeight + '</div><div><b>Сервер:</b> ' + location.origin + '</div><div style="margin-top:16px;color:var(--text3);font-size:12px">Сделано с ❤️</div></div>';
+    return wrap;
+  }
+});
+
+/* ============ РЕСУРСЫ ============ */
+var WALLPAPERS = [
+  { name:'Aurora', css:'wp-aurora' }, { name:'Mesh', css:'wp-mesh' }, { name:'Sunset', css:'wp-sunset' },
+  { name:'Ocean', css:'wp-ocean' }, { name:'Forest', css:'wp-forest' }, { name:'Cyber', css:'wp-cyber' },
+  { name:'Graphite', css:'wp-graphite' }, { name:'Rose', css:'wp-rose' }, { name:'Mint', css:'wp-mint' },
+  { name:'Ember', css:'wp-ember' }, { name:'Lavender', css:'wp-lavender' }, { name:'Slate', css:'wp-slate' },
+  { name:'Pink', css:'wp-pink' }, { name:'Mono', css:'wp-mono' }
+];
+var ACCENTS = ['#7c6cf5','#a855f7','#ec4899','#f43f5e','#f59e0b','#eab308','#22c55e','#10b981','#06b6d4','#3b82f6','#8b5cf6','#ef4444'];
+var AVATARS = ['👤','🧑','👨','👩','🧔','👱','👴','👵','🧑‍💻','🧑‍🎨','🦊','🐱','🐼','🦁','🐯','🐸','🐵','🦄','🐉','🚀','⭐','🎮','🎨','🎧','🍕','⚡','🌸','🔥','💎','🌟'];
+
+/* ============ DESKTOP ============ */
+var Desktop = {
+  initialized: false,
+  init: function(){
+    if (this.initialized) return;
+    this.initialized = true;
+    this.renderIcons(); this.renderWidgets();
+    this.buildStart(); this.buildQuick();
+    this.bindEvents(); this.applySettings();
+    this.updateClock();
+    var self = this;
+    setInterval(function(){ self.updateClock(); }, 1000);
+    this.greet();
+  },
+  applySettings: function(){
+    var s = Auth.settings;
+    var wp = $('#wallpaper');
+    if (s.customWallpaper){ wp.className = ''; wp.style.background = s.customWallpaper; wp.style.backgroundSize = 'cover'; wp.style.backgroundPosition = 'center'; }
+    else { wp.style.background = ''; wp.className = WALLPAPERS[s.wallpaper] ? WALLPAPERS[s.wallpaper].css : WALLPAPERS[0].css; }
+    document.body.setAttribute('data-theme', s.theme || 'dark');
+    document.documentElement.style.setProperty('--accent', s.accent || '#7c6cf5');
+    document.documentElement.style.setProperty('--accent2', hueShift(s.accent || '#7c6cf5', 30));
+    var su = $('#sm-user');
+    if (su){
+      su.querySelector('.av').textContent = Auth.current.avatar;
+      su.querySelector('.nm').textContent = Auth.current.display;
+      su.querySelector('.sub').textContent = '@' + Auth.current.name;
+    }
+    var hour = new Date().getHours();
+    var gw = hour < 6 ? 'Доброй ночи' : hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
+    var gn = $('#sm-greet-title'); if (gn) gn.textContent = gw + ', ' + Auth.current.display + '!';
+    this.renderWidgets();
+  },
+  renderIcons: function(){
+    var box = $('#iconLayer');
+    box.innerHTML = '';
+    var icons = ['files','browser','terminal','notepad','settings','paint','calc','photos','clock','calendar','snake','g2048','mines','memory','ttt','sticky','todo','pomodoro','taskmgr','about'];
+    var saved = Auth.settings.desktopIcons || {};
+    var colH = Math.max(92, Math.floor((window.innerHeight - 100) / 8));
+    icons.forEach(function(id, i){
+      var app = APPS[id]; if (!app) return;
+      var ic = ce('div', 'dicon');
+      ic.setAttribute('data-app', id);
+      ic.innerHTML = '<div class="ic">' + app.icon + '</div><div class="nm">' + esc(app.name) + '</div>';
+      var pos = saved[id];
+      if (!pos){ var col = Math.floor(i / 8), row = i % 8; pos = { x:12 + col * 98, y:12 + row * colH }; }
+      ic.style.left = pos.x + 'px'; ic.style.top = pos.y + 'px';
+      ic.ondblclick = function(){ WM.create(id, app); };
+      ic.onclick = function(){ $$('.dicon').forEach(function(x){ x.classList.remove('sel'); }); ic.classList.add('sel'); };
+      var drag = null;
+      ic.addEventListener('pointerdown', function(e){
+        if (e.button !== 0) return;
+        ic.setPointerCapture(e.pointerId);
+        var r = ic.getBoundingClientRect();
+        drag = { dx:e.clientX - r.left, dy:e.clientY - r.top, moved:false };
+      });
+      ic.addEventListener('pointermove', function(e){
+        if (!drag) return;
+        drag.moved = true;
+        var boxR = box.getBoundingClientRect();
+        var nx = clamp(e.clientX - boxR.left - drag.dx, 0, boxR.width - 92);
+        var ny = clamp(e.clientY - boxR.top - drag.dy, 0, boxR.height - 90);
+        ic.style.left = nx + 'px'; ic.style.top = ny + 'px';
+      });
+      ic.addEventListener('pointerup', function(){
+        if (drag && drag.moved){
+          var s = Auth.settings.desktopIcons || {};
+          s[id] = { x:parseInt(ic.style.left), y:parseInt(ic.style.top) };
+          Auth.saveSettings({ desktopIcons:s });
+        }
+        drag = null;
+      });
+      box.appendChild(ic);
+    });
+  },
+  arrangeIcons: function(){
+    var box = $('#iconLayer');
+    var icons = $$('.dicon', box);
+    var colH = Math.max(92, Math.floor((window.innerHeight - 100) / 8));
+    var settings = {};
+    icons.forEach(function(ic, i){
+      var col = Math.floor(i / 8), row = i % 8;
+      var x = 12 + col * 98, y = 12 + row * colH;
+      ic.style.left = x + 'px'; ic.style.top = y + 'px';
+      settings[ic.getAttribute('data-app')] = { x:x, y:y };
+    });
+    Auth.saveSettings({ desktopIcons:settings });
+  },
+  renderWidgets: function(){
+    var layer = $('#widgetLayer'); if (!layer) return;
+    layer.innerHTML = '';
+    var clkW = ce('div', 'widget clock');
+    clkW.innerHTML = '<div class="wt-time" id="wg-time">--:--</div><div class="wt-date" id="wg-date"></div>';
+    layer.appendChild(clkW);
+    var weaW = ce('div', 'widget weather');
+    weaW.innerHTML = '<div class="wg-city">Москва</div><div class="wg-temp" id="wg-temp">--°</div><div class="wg-desc" id="wg-desc">Загрузка…</div>';
+    layer.appendChild(weaW);
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,weather_code&timezone=auto')
+      .then(function(r){ return r.json(); }).then(function(d){
+        var t = $('#wg-temp'); if (t) t.textContent = Math.round(d.current.temperature_2m) + '°';
+        var code = d.current.weather_code;
+        var desc = code === 0 ? 'Ясно' : code <= 3 ? 'Облачно' : code <= 67 ? 'Дождь' : code <= 77 ? 'Снег' : 'Гроза';
+        var de = $('#wg-desc'); if (de) de.textContent = desc;
+      }).catch(function(){ var de = $('#wg-desc'); if (de) de.textContent = 'Нет сети'; });
+    this.updateWidgetClock();
+  },
+  updateWidgetClock: function(){
+    var d = new Date();
+    var ct = $('#wg-time'); if (ct) ct.textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    var cd = $('#wg-date'); if (cd) cd.textContent = d.toLocaleDateString('ru-RU', { weekday:'short', day:'numeric', month:'long' });
+  },
+  buildStart: function(){
+    var grid = $('#sm-apps'); if (!grid) return;
+    grid.innerHTML = '';
+    var list = ['files','browser','terminal','notepad','settings','paint','calc','photos','clock','calendar','snake','g2048','mines','memory','ttt','sticky','todo','pomodoro','taskmgr'];
+    list.forEach(function(id){
+      var app = APPS[id]; if (!app) return;
+      var b = ce('button', 'sm-app');
+      b.setAttribute('data-name', (app.name + ' ' + id).toLowerCase());
+      b.innerHTML = '<span class="em">' + app.icon + '</span><span class="lb">' + esc(app.name) + '</span>';
+      b.onclick = function(){ Desktop.closeStart(); WM.create(id, app); };
+      grid.appendChild(b);
+    });
+    var search = $('#sm-search');
+    search.oninput = function(){
+      var q = search.value.toLowerCase().trim();
+      $$('.sm-app', grid).forEach(function(b){ b.style.display = (!q || b.getAttribute('data-name').indexOf(q) >= 0) ? '' : 'none'; });
+    };
+  },
+  buildQuick: function(){
+    var grid = $('#qp-grid'); if (!grid) return;
+    var tiles = [
+      { ic:'📶', label:'Wi-Fi', key:'wifi', def:true },
+      { ic:'🔵', label:'Bluetooth', key:'bt', def:false },
+      { ic:'✈️', label:'В самолёте', key:'airplane', def:false },
+      { ic:'🔋', label:'Экономия', key:'saver', def:false },
+      { ic:'🌙', label:'Ночной', key:'night', def:false },
+      { ic:'🎯', label:'Фокус', key:'focus', def:false }
+    ];
+    grid.innerHTML = '';
+    var state = {};
+    try { state = JSON.parse(localStorage.getItem('prismos.qs') || '{}'); } catch(e){ state = {}; }
+    tiles.forEach(function(t){
+      if (state[t.key] === undefined) state[t.key] = t.def;
+      var b = ce('button', 'qp-tile' + (state[t.key] ? ' on' : ''));
+      b.innerHTML = '<div class="qp-ic">' + t.ic + '</div><div>' + t.label + '</div>';
+      b.onclick = function(){ state[t.key] = !state[t.key]; b.classList.toggle('on', state[t.key]); try { localStorage.setItem('prismos.qs', JSON.stringify(state)); } catch(e){} Sound.click(); };
+      grid.appendChild(b);
+    });
+    var br = $('#qp-bright');
+    if (br) br.oninput = function(e){ document.body.style.filter = 'brightness(' + (e.target.value / 100) + ')'; };
+    var qs = $('#qp-settings');
+    if (qs) qs.onclick = function(){ Desktop.closeQuick(); WM.create('settings', APPS.settings); };
+  },
+  updateClock: function(){
+    var d = new Date();
+    var s = Auth.settings || {};
+    var time;
+    if (s.clock24 !== false) time = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    else { var h12 = d.getHours() % 12 || 12; time = h12 + ':' + String(d.getMinutes()).padStart(2,'0') + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM'); }
+    if (s.seconds) time += ':' + String(d.getSeconds()).padStart(2,'0');
+    var tbTime = $('#tb-time'); if (tbTime) tbTime.textContent = time;
+    var tbDate = $('#tb-date'); if (tbDate) tbDate.textContent = d.toLocaleDateString('ru-RU', { day:'numeric', month:'short' });
+    var lkTime = $('#lk-time'); if (lkTime) lkTime.textContent = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    var lkDate = $('#lk-date'); if (lkDate) lkDate.textContent = d.toLocaleDateString('ru-RU', { weekday:'long', day:'numeric', month:'long' });
+    this.updateWidgetClock();
+  },
+  greet: function(){
+    setTimeout(function(){
+      var hour = new Date().getHours();
+      var gw = hour < 6 ? 'Доброй ночи' : hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
+      Notify.toast(gw + ', ' + Auth.current.display + '! 👋', 'Данные синхронизированы с сервером.', '✨', 5500);
+    }, 800);
+  },
+  openStart: function(){ $('#start').classList.add('open'); $('#startBtn').classList.add('on'); $('#sm-search').value = ''; $$('.sm-app').forEach(function(x){ x.style.display = ''; }); setTimeout(function(){ $('#sm-search').focus(); }, 80); closePanels('start'); },
+  closeStart: function(){ $('#start').classList.remove('open'); $('#startBtn').classList.remove('on'); },
+  toggleStart: function(){ if ($('#start').classList.contains('open')) this.closeStart(); else this.openStart(); },
+  openQuick: function(){ $('#quick').classList.add('open'); closePanels('quick'); },
+  closeQuick: function(){ $('#quick').classList.remove('open'); },
+  openNotif: function(){ $('#notif').classList.add('open'); Notify.renderCenter(); Notify.hideDot(); closePanels('notif'); },
+  closeNotif: function(){ $('#notif').classList.remove('open'); },
+  bindEvents: function(){
+    var self = this;
+    $('#startBtn').onclick = function(e){ e.stopPropagation(); self.toggleStart(); };
+    $('#sm-lock').onclick = function(){ self.closeStart(); showLock(); };
+    $('#sm-settings').onclick = function(){ self.closeStart(); WM.create('settings', APPS.settings); };
+    $('#sm-power').onclick = function(){
+      if (confirm('Выйти из аккаунта?')){
+        for (var id in WM.wins) if (WM.wins.hasOwnProperty(id)) WM.close(id);
+        Auth.logout();
+        setTimeout(function(){ location.reload(); }, 300);
+      }
+    };
+    $('#sm-user').onclick = function(){ self.closeStart(); WM.create('settings', APPS.settings); };
+    $('#trayQuick').onclick = function(e){ e.stopPropagation(); if ($('#quick').classList.contains('open')) self.closeQuick(); else self.openQuick(); };
+    $('#trayNotif').onclick = function(e){ e.stopPropagation(); if ($('#notif').classList.contains('open')) self.closeNotif(); else self.openNotif(); };
+    $('#tb-clock').onclick = function(){ if ($('#notif').classList.contains('open')) self.closeNotif(); else self.openNotif(); };
+    $('#np-clear').onclick = function(){ Notify.history = []; Notify.renderCenter(); };
+    document.addEventListener('pointerdown', function(e){
+      var panels = [
+        { p:$('#start'), b1:$('#startBtn') },
+        { p:$('#quick'), b1:$('#trayQuick') },
+        { p:$('#notif'), b1:$('#trayNotif'), b2:$('#tb-clock') }
+      ];
+      panels.forEach(function(it){
+        var panel = it.p;
+        if (!panel || !panel.classList.contains('open')) return;
+        if (panel.contains(e.target)) return;
+        if (it.b1 && it.b1.contains(e.target)) return;
+        if (it.b2 && it.b2.contains(e.target)) return;
+        panel.classList.remove('open');
+      });
+    });
+    $('#desktop').addEventListener('contextmenu', function(e){
+      if (e.target.closest('.window') || e.target.closest('.dicon') || e.target.closest('.widget')) return;
+      e.preventDefault();
+      showCtx(e.clientX, e.clientY, [
+        { icon:'🔄', label:'Обновить', action:function(){ location.reload(); } },
+        { sep:true },
+        { icon:'📁', label:'Создать папку', action:function(){ var n = prompt('Имя:', 'Новая папка'); if (n) Auth.fsMkdir(['Рабочий стол', n]).then(function(){ Notify.toast('Стол', 'OK', '📁'); }); } },
+        { icon:'📄', label:'Создать файл', action:function(){ var n = prompt('Имя:', 'новый.txt'); if (n) Auth.fsWrite(['Рабочий стол', n], '').then(function(){ Notify.toast('Стол', 'OK', '📄'); }); } },
+        { sep:true },
+        { icon:'🎨', label:'Персонализация', action:function(){ WM.create('settings', APPS.settings); } },
+        { icon:'⌨️', label:'Терминал', action:function(){ WM.create('terminal', APPS.terminal); } },
+        { icon:'📊', label:'Диспетчер', action:function(){ WM.create('taskmgr', APPS.taskmgr); } }
+      ]);
+    });
+    document.addEventListener('keydown', function(e){
+      var tag = (e.target.tagName || '').toLowerCase();
+      var inInput = tag === 'input' || tag === 'textarea';
+      if (e.key === 'Meta' && !e.repeat && !inInput){ e.preventDefault(); self.toggleStart(); return; }
+      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 't'){ e.preventDefault(); WM.create('terminal', APPS.terminal); return; }
+      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'n'){ e.preventDefault(); WM.create('notepad', APPS.notepad); return; }
+      if (e.ctrlKey && e.shiftKey && e.key === 'Escape'){ e.preventDefault(); WM.create('taskmgr', APPS.taskmgr); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'w' && WM.activeId){ e.preventDefault(); WM.close(WM.activeId); return; }
+      if (e.key === 'Escape'){ self.closeStart(); self.closeQuick(); self.closeNotif(); hideCtx(); return; }
+      if (e.key === 'F11'){ e.preventDefault(); if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    });
+  }
+};
+function closePanels(except){
+  if (except !== 'start') $('#start').classList.remove('open');
+  if (except !== 'quick') $('#quick').classList.remove('open');
+  if (except !== 'notif') $('#notif').classList.remove('open');
+}
+
+/* ============ SETUP / LOGIN ============ */
+var Setup = {
+  step: 1,
+  data: { name:'', login:'', pass:'', avatar:'👤', wallpaper:0, accent:'#7c6cf5', theme:'dark' },
+  init: function(){
+    var avRow = $('#su-avatars'); avRow.innerHTML = '';
+    AVATARS.slice(0, 12).forEach(function(a){
+      var b = ce('div', 'avatar' + (a === '👤' ? ' sel' : ''), a);
+      b.onclick = function(){ $$('.avatar', avRow).forEach(function(x){ x.classList.remove('sel'); }); b.classList.add('sel'); Setup.data.avatar = a; };
+      avRow.appendChild(b);
+    });
+    var wpRow = $('#su-walls'); wpRow.innerHTML = '';
+    WALLPAPERS.slice(0, 8).forEach(function(w, i){
+      var sw = ce('div', 'wp-swatch ' + w.css + (i === 0 ? ' sel' : ''));
+      sw.title = w.name;
+      sw.onclick = function(){ $$('.wp-swatch', wpRow).forEach(function(x){ x.classList.remove('sel'); }); sw.classList.add('sel'); Setup.data.wallpaper = i; };
+      wpRow.appendChild(sw);
+    });
+    var acRow = $('#su-accents'); acRow.innerHTML = '';
+    ACCENTS.forEach(function(c){
+      var a = ce('div', 'accent' + (c === '#7c6cf5' ? ' sel' : ''));
+      a.style.background = 'linear-gradient(135deg, ' + c + ', ' + hueShift(c, 30) + ')';
+      a.onclick = function(){ $$('.accent', acRow).forEach(function(x){ x.classList.remove('sel'); }); a.classList.add('sel'); Setup.data.accent = c; };
+      acRow.appendChild(a);
+    });
+    $$('#su-themes .theme-opt').forEach(function(opt){
+      opt.onclick = function(){ $$('#su-themes .theme-opt').forEach(function(x){ x.classList.remove('sel'); }); opt.classList.add('sel'); Setup.data.theme = opt.getAttribute('data-t'); };
+    });
+    $('#su-back').onclick = function(){ Setup.go(Setup.step - 1); };
+    $('#su-next').onclick = function(){
+      if (!Setup.validate()) return;
+      if (Setup.step < 3) Setup.go(Setup.step + 1);
+      else Setup.finish();
+    };
+    $('#su-login-link').onclick = function(){ showLoginScreen(); };
+  },
+  go: function(n){
+    if (n < 1 || n > 3) return;
+    if (this.step === 1){
+      this.data.name = $('#su-name').value.trim();
+      this.data.login = $('#su-login').value.trim();
+      this.data.pass = $('#su-pass').value;
+    }
+    this.step = n;
+    $$('.step').forEach(function(p){ p.classList.toggle('on', +p.getAttribute('data-panel') === n); });
+    $$('.progress span').forEach(function(s){ s.classList.toggle('on', +s.getAttribute('data-s') <= n); });
+    $('#su-back').disabled = n === 1;
+    $('#su-next').textContent = n === 3 ? '✨ Создать аккаунт' : 'Продолжить →';
+    if (n === 3) this.renderSummary();
+  },
+  validate: function(){
+    if (this.step === 1){
+      var name = $('#su-name').value.trim();
+      var login = $('#su-login').value.trim();
+      var pass = $('#su-pass').value;
+      var err = $('#su-err');
+      err.textContent = '';
+      if (!name){ err.textContent = 'Введите имя'; return false; }
+      if (!login){ err.textContent = 'Введите логин'; return false; }
+      if (!/^[a-z0-9_-]{3,24}$/i.test(login)){ err.textContent = 'Логин: 3-24 симв., латиница/цифры/_/-'; return false; }
+      if (pass.length < 4){ err.textContent = 'Пароль минимум 4 символа'; return false; }
+    }
+    return true;
+  },
+  renderSummary: function(){
+    var d = this.data;
+    $('#su-summary').innerHTML = '<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px"><div style="font-size:48px">' + d.avatar + '</div><div><div style="font-size:18px;font-weight:600">' + esc(d.name) + '</div><div style="color:var(--text2);font-size:13px">@' + esc(d.login) + '</div></div></div><div>Обои: <b>' + WALLPAPERS[d.wallpaper].name + '</b></div><div>Акцент: <b style="color:' + d.accent + '">' + d.accent + '</b></div><div>Тема: <b>' + (d.theme === 'dark' ? 'Тёмная' : 'Светлая') + '</b></div>';
+  },
+  finish: function(){
+    var btn = $('#su-next');
+    btn.disabled = true;
+    btn.textContent = '⏳ Создание…';
+    $('#su-err').textContent = '';
+    Auth.register(this.data.login, this.data.pass, this.data.name, this.data.avatar, this.data.wallpaper, this.data.accent, this.data.theme)
+      .then(function(){
+        Sound.startup();
+        $('#setup').classList.add('hidden');
+        startDesktop();
+      })
+      .catch(function(e){
+        btn.disabled = false;
+        btn.textContent = '✨ Создать аккаунт';
+        $('#su-err').textContent = e.message;
+      });
+  }
+};
+
+function showLoginScreen(){
+  $('#setup').classList.add('hidden');
+  $('#loginScreen').classList.remove('hidden');
+  setTimeout(function(){ $('#li-login').focus(); }, 100);
+}
+function showRegisterScreen(){
+  $('#loginScreen').classList.add('hidden');
+  $('#setup').classList.remove('hidden');
+}
+
+function tryLoginScreen(){
+  var login = $('#li-login').value.trim();
+  var pass = $('#li-pass').value;
+  var err = $('#li-err');
+  err.textContent = '';
+  if (!login || !pass){ err.textContent = 'Введите логин и пароль'; return; }
+  var btn = $('#li-go');
+  btn.disabled = true;
+  btn.textContent = '⏳ Вход…';
+  Auth.login(login, pass)
+    .then(function(){
+      Sound.success();
+      $('#loginScreen').classList.add('hidden');
+      startDesktop();
+    })
+    .catch(function(e){
+      btn.disabled = false;
+      btn.textContent = 'Войти';
+      err.textContent = e.message;
+      Sound.error();
+    });
+}
+
+/* ============ LOCK ============ */
+function showLock(){
+  var scr = $('#lock'); scr.classList.remove('hidden');
+  var wp = WALLPAPERS[Auth.settings.wallpaper] || WALLPAPERS[0];
+  scr.className = wp.css; scr.id = 'lock';
+  if (Auth.settings.customWallpaper){ scr.style.background = Auth.settings.customWallpaper; scr.style.backgroundSize = 'cover'; }
+  else scr.style.background = '';
+  $('#lk-main').style.display = 'block';
+  $('#lk-user').classList.remove('on');
+  $('#lk-hint').onclick = function(){
+    $('#lk-main').style.display = 'none';
+    $('#lk-user').classList.add('on');
+    $('#lk-avatar').textContent = Auth.current.avatar;
+    $('#lk-name').textContent = Auth.current.display;
+    $('#lk-pass').value = '';
+    $('#lk-err').textContent = '';
+    setTimeout(function(){ $('#lk-pass').focus(); }, 100);
+  };
+  Desktop.updateClock();
+}
+function tryUnlock(){
+  var pw = $('#lk-pass').value;
+  if (!pw) return;
+  // Проверяем через сервер: логинимся ещё раз
+  Auth.login(Auth.current.name, pw)
+    .then(function(){
+      $('#lock').classList.add('out');
+      setTimeout(function(){ $('#lock').classList.add('hidden'); $('#lock').classList.remove('out'); }, 400);
+      Sound.success();
+    })
+    .catch(function(){
+      Sound.error();
+      $('#lk-pass').value = '';
+      $('#lk-err').textContent = 'Неверный пароль';
+      setTimeout(function(){ $('#lk-err').textContent = ''; }, 1500);
+    });
+}
+
+/* ============ WEBSOCKET — СВЯЗЬ С АДМИНОМ ============ */
+var WS = null;
+var WS_RECONNECT = null;
+var PRANK_STATE = { active: {} };
+
+function initWS(){
+  if (!Auth.current) return;
+  try {
+    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    var url = proto + '//' + location.host + '/ws?token=' + encodeURIComponent(API.token || '');
+    WS = new WebSocket(url);
+
+    WS.onopen = function(){
+      console.log('[WS] connected');
+      sendWS({ type: 'hello', user: Auth.current.name });
+      // Периодически отправляем состояние
+      if (WS.stateInterval) clearInterval(WS.stateInterval);
+      WS.stateInterval = setInterval(sendState, 1500);
+      sendState();
+    };
+
+    WS.onmessage = function(e){
+      var m;
+      try { m = JSON.parse(e.data); } catch(err){ return; }
+      if (!m || !m.type) return;
+      // Только свои команды
+      if (m.user && Auth.current && m.user !== Auth.current.name) return;
+      handleAdminCommand(m);
+    };
+
+    WS.onclose = function(){
+      console.log('[WS] disconnected');
+      if (WS && WS.stateInterval) clearInterval(WS.stateInterval);
+      WS = null;
+      clearTimeout(WS_RECONNECT);
+      WS_RECONNECT = setTimeout(initWS, 3000);
+    };
+
+    WS.onerror = function(){
+      // Ошибка закроет WS, сработает onclose
+    };
+  } catch(e){ console.warn('[WS] init fail', e); }
+}
+
+function sendWS(msg){
+  if (WS && WS.readyState === 1){ try { WS.send(JSON.stringify(msg)); } catch(e){} }
+}
+
+function sendState(){
+  if (!Auth.current) return;
+  var wins = [];
+  for (var id in WM.wins) if (WM.wins.hasOwnProperty(id)){
+    var w = WM.wins[id];
+    wins.push({ app:w.appId, title: w.titleEl ? w.titleEl.textContent : '', icon:w.app.icon, minimized:w.minimized });
+  }
+  var active = WM.activeId ? WM.wins[WM.activeId] : null;
+  sendWS({
+    type:'state',
+    user: Auth.current.name,
+    windows: wins,
+    activeApp: active ? active.app.name : null,
+    screen: window.innerWidth + '×' + window.innerHeight,
+    sessionStart: window._prismosSessionStart || (window._prismosSessionStart = Date.now())
+  });
+}
+
+function handleAdminCommand(m){
+  try {
+    switch (m.type){
+      case 'cmd-notify':
+        Notify.toast(m.payload.title, m.payload.msg, m.payload.icon || '🔔', 6000);
+        break;
+      case 'cmd-toggle-theme':
+        Auth.saveSettings({ theme: Auth.settings.theme === 'dark' ? 'light' : 'dark' });
+        Desktop.applySettings();
+        break;
+      case 'cmd-random-accent':
+        var accs = ['#ef4444','#f97316','#eab308','#22c55e','#06b6d4','#8b5cf6','#ec4899'];
+        Auth.saveSettings({ accent: accs[Math.floor(Math.random() * accs.length)] });
+        Desktop.applySettings();
+        break;
+      case 'cmd-random-wallpaper':
+        Auth.saveSettings({ wallpaper: Math.floor(Math.random() * WALLPAPERS.length), customWallpaper: null });
+        Desktop.applySettings();
+        break;
+      case 'cmd-toggle-sound':
+        Auth.saveSettings({ sound: !Auth.settings.sound });
+        break;
+      case 'cmd-lock':
+        showLock();
+        break;
+      case 'cmd-logout':
+        for (var id in WM.wins) if (WM.wins.hasOwnProperty(id)) WM.close(id);
+        Auth.logout();
+        setTimeout(function(){ location.reload(); }, 300);
+        break;
+      case 'cmd-close-all':
+        WM.minimizeAll();
+        break;
+      case 'cmd-reload':
+        setTimeout(function(){ location.reload(); }, 300);
+        break;
+      case 'cmd-open-app':
+        if (APPS[m.payload]) WM.create(m.payload, APPS[m.payload]);
+        break;
+      case 'cmd-prank':
+        applyPrank(m.payload);
+        break;
+    }
+  } catch(err){ console.error('[Admin cmd]', err); }
+}
+
+function applyPrank(name){
+  var root = document.body;
+  switch (name){
+    case 'sound': Sound.startup(); break;
+    case 'flip':
+      root.style.transition = 'transform .5s'; root.style.transform = 'rotate(180deg)';
+      setTimeout(function(){ root.style.transform = ''; }, 4000); break;
+    case 'invert':
+      root.style.transition = 'filter .5s'; root.style.filter = 'invert(1)';
+      setTimeout(function(){ root.style.filter = ''; }, 5000); break;
+    case 'shake':
+      if (!document.getElementById('prank-shake')){
+        var st = document.createElement('style');
+        st.id = 'prank-shake';
+        st.textContent = '@keyframes shakeIt{0%,100%{transform:translate(0,0)}25%{transform:translate(-5px,3px)}50%{transform:translate(5px,-3px)}75%{transform:translate(-3px,-5px)}}';
+        document.head.appendChild(st);
+      }
+      root.style.animation = 'shakeIt .5s infinite';
+      setTimeout(function(){ root.style.animation = ''; }, 5000); break;
+    case 'spam-notify':
+      var msgs = ['Привет! 👋','Как дела?','Я тут','Скучно 😴','Пиши мне','Хватит работать','Отдохни!','Алооо','Спишь?','Ха-ха-ха 😂'];
+      var iv = setInterval(function(){ Notify.toast('Спам', msgs[Math.floor(Math.random() * msgs.length)], '📢', 3000); }, 800);
+      setTimeout(function(){ clearInterval(iv); }, 10000); break;
+    case 'confetti':
+      var iv2 = setInterval(function(){
+        for (var i = 0; i < 20; i++){
+          (function(){
+            var e = document.createElement('div');
+            e.textContent = ['🎉','🎊','✨','⭐','🌟','💫'][Math.floor(Math.random() * 6)];
+            e.style.cssText = 'position:fixed;z-index:99999;font-size:' + (16 + Math.random() * 24) + 'px;left:' + (Math.random() * 100) + 'vw;top:-50px;pointer-events:none;transition:transform 3s linear,opacity 3s';
+            document.body.appendChild(e);
+            setTimeout(function(){ e.style.transform = 'translateY(110vh) rotate(720deg)'; e.style.opacity = '0'; }, 50);
+            setTimeout(function(){ if (e.parentNode) e.parentNode.removeChild(e); }, 3200);
+          })();
+        }
+      }, 200);
+      setTimeout(function(){ clearInterval(iv2); }, 5000); break;
+    case 'blackout':
+      root.style.transition = 'filter 1s'; root.style.filter = 'brightness(0)';
+      setTimeout(function(){ root.style.filter = ''; }, 4000); break;
+    case 'chaos':
+      var pl = ['sound','flip','invert','shake','confetti','blackout'];
+      var iv3 = setInterval(function(){ applyPrank(pl[Math.floor(Math.random() * pl.length)]); }, 3000);
+      setTimeout(function(){ clearInterval(iv3); }, 20000); break;
+    case 'comic-sans':
+      root.style.fontFamily = '"Comic Sans MS", cursive';
+      setTimeout(function(){ root.style.fontFamily = ''; }, 5000); break;
+    case 'mirror':
+      root.style.transition = 'transform .5s'; root.style.transform = 'scaleX(-1)';
+      setTimeout(function(){ root.style.transform = ''; }, 5000); break;
+    case 'fake-bsod':
+      var bsod = document.createElement('div');
+      bsod.style.cssText = 'position:fixed;inset:0;z-index:999998;background:#0078d7;color:#fff;font-family:Segoe UI,system-ui,sans-serif;padding:12vh 10vw;font-size:16px;line-height:1.5';
+      bsod.innerHTML = '<div style="font-size:96px;margin-bottom:20px">:(</div><div style="font-size:22px;margin-bottom:16px">На вашем устройстве возникла проблема, и его необходимо перезагрузить.</div><div style="font-size:16px;opacity:.8">Прогресс: ' + Math.floor(Math.random()*40) + '% завершено</div><div style="font-size:12px;margin-top:40px;opacity:.6;font-family:monospace">Код ошибки: PRISM_FAKE_BSOD</div><div style="font-size:12px;margin-top:8px;opacity:.6">Кликни чтобы закрыть</div>';
+      bsod.onclick = function(){ bsod.remove(); };
+      document.body.appendChild(bsod);
+      setTimeout(function(){ if (bsod.parentNode) bsod.remove(); }, 8000); break;
+    case 'notify-loop':
+      var iv4 = setInterval(function(){ Notify.toast('🔔 Постоянное уведомление', 'Это сообщение не прекратится', '📢', 3000); }, 2000);
+      setTimeout(function(){ clearInterval(iv4); }, 12000); break;
+    case 'screenshot-freeze':
+      Notify.toast('📸 Скриншот', 'Скриншот сделан!', '📷');
+      root.style.animation = 'shakeIt .2s 3';
+      setTimeout(function(){ root.style.animation = ''; }, 600); break;
+  }
+}
+
+/* ============ START DESKTOP ============ */
+function startDesktop(){
+  var bs = $('#boot');
+  if (bs){ bs.classList.add('out'); setTimeout(function(){ if (bs.parentNode) bs.parentNode.removeChild(bs); }, 600); }
+  $('#setup').classList.add('hidden');
+  $('#loginScreen').classList.add('hidden');
+  $('#lock').classList.add('hidden');
+  $('#desktop').classList.remove('hidden');
+  $('#taskbar').classList.remove('hidden');
+  Desktop.init();
+  initWS();
+  if (!sessionStorage.getItem('prismos.welcomed')){
+    sessionStorage.setItem('prismos.welcomed', '1');
+    setTimeout(function(){
+      WM.create('notepad', APPS.notepad, {
+        title:'Добро пожаловать.txt',
+        text:'✨ Добро пожаловать в PrismOS 3.0, ' + Auth.current.display + '!\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nЭто теперь КЛИЕНТ-СЕРВЕРНАЯ система:\n• Аккаунт хранится на сервере\n• Файлы синхронизируются\n• Админ может следить за тобой в реальном времени\n\nПРИЛОЖЕНИЯ:\n📁 Файлы, Терминал, Блокнот, Калькулятор\n🎨 Paint, Фото\n⏰ Часы, Календарь\n🌐 Браузер (через серверный прокси)\n🎮 Змейка, 2048, Сапёр, Память, Крестики-нолики\n📝 Стикеры, To-do, Помодоро\n📊 Диспетчер, Настройки\n\nГОРЯЧИЕ КЛАВИШИ:\nWin — Пуск · Ctrl+Alt+T — Терминал\nCtrl+Shift+Esc — Диспетчер · Ctrl+W — закрыть\nF11 — полный экран\n\nПриятного использования! 🚀'
+      });
+    }, 1000);
+  }
+}
+
+/* ============ BOOT ============ */
+window.addEventListener('error', function(e){
+  var bs = document.getElementById('boot');
+  if (bs && !bs.classList.contains('out')){
+    var msg = (e.error && e.error.message) || e.message || 'Ошибка';
+    bs.innerHTML = '<div style="color:#eeeef5;padding:40px;text-align:center;font-family:system-ui;max-width:700px"><div style="font-size:52px">⚠️</div><h1 style="font-weight:400">Ошибка запуска</h1><p style="opacity:.7">' + esc(msg) + '</p><button onclick="location.reload()" style="margin-top:20px;padding:12px 26px;border-radius:10px;border:0;background:#7c6cf5;color:#fff;cursor:pointer;font-size:14px">Перезагрузить</button></div>';
+  }
+});
+
+function boot(){
+  try { Setup.init(); } catch(e){ console.error(e); }
+
+  // Проверяем токен
+  var token = API.restoreToken();
+
+  setTimeout(function(){
+    var bs = $('#boot');
+    if (bs){ bs.classList.add('out'); setTimeout(function(){ if (bs.parentNode) bs.parentNode.removeChild(bs); }, 600); }
+
+    setTimeout(function(){
+      if (!token){
+        // Нет токена — показываем setup
+        $('#setup').classList.remove('hidden');
+        return;
+      }
+      // Есть токен — пробуем восстановить сессию
+      Auth.me()
+        .then(function(){
+          startDesktop();
+        })
+        .catch(function(e){
+          console.warn('Token invalid:', e.message);
+          API.setToken(null);
+          showLoginScreen();
+        });
+    }, 100);
+  }, 1500);
+
+  // Wire login screen
+  $('#li-go').onclick = tryLoginScreen;
+  $('#li-pass').addEventListener('keydown', function(e){ if (e.key === 'Enter') tryLoginScreen(); });
+  $('#li-login').addEventListener('keydown', function(e){ if (e.key === 'Enter') $('#li-pass').focus(); });
+  $('#li-register').onclick = showRegisterScreen;
+
+  // Wire lock screen
+  var lkGo = $('#lk-go');
+  if (lkGo) lkGo.onclick = tryUnlock;
+  var lkPass = $('#lk-pass');
+  if (lkPass) lkPass.addEventListener('keydown', function(e){ if (e.key === 'Enter') tryUnlock(); });
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+else boot();
+
+console.log('%cPrismOS %cv3.0 — клиент-серверная версия',
+  'font-size:18px;font-weight:700;background:linear-gradient(135deg,#7c6cf5,#c084fc);-webkit-background-clip:text;color:transparent;',
+  'font-size:13px;color:#888;');
+
+})();
+</script>
+</body>
+</html>
