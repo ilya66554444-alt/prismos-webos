@@ -203,9 +203,9 @@ function fmtDate(ts){ if (!ts) return '—'; return new Date(ts).toLocaleString(
 /* ============ API ============ */
 function api(path, body){
   return fetch(path, {
-    method: body ? 'POST' : 'GET',
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(Object.assign({ pass: ADMIN_PASS }, body)) : undefined
+    body: JSON.stringify(Object.assign({ pass: ADMIN_PASS }, body || {}))
   }).then(function(r){
     return r.json().catch(function(){ return {}; }).then(function(d){
       if (!r.ok) throw new Error(d.error || ('HTTP ' + r.status));
