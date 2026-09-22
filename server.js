@@ -323,7 +323,11 @@ const PROXY_PATH = '/__proxy__';
 const DROP = new Set([
   'x-frame-options','content-security-policy','content-security-policy-report-only',
   'transfer-encoding','connection','keep-alive','content-encoding',
-  'strict-transport-security','content-length','set-cookie','cookie'
+  'strict-transport-security','content-length','set-cookie','cookie',
+  'content-disposition','x-content-type-options',
+  'cross-origin-resource-policy','cross-origin-embedder-policy',
+  'cross-origin-opener-policy','permissions-policy',
+  'report-to','nel','origin-trial','expect-ct','alt-svc'
 ]);
 const httpAgent = new http.Agent({ keepAlive: true, maxSockets: 64 });
 const httpsAgent = new https.Agent({ keepAlive: true, maxSockets: 64 });
@@ -383,9 +387,32 @@ function rewriteProxyHtml(html, base){
     try { return PROXY_PATH + '?url=' + encodeURIComponent(new URL(u, base).href); }
     catch(e){ return u; }
   }
+
+  // 1. Удаляем meta-CSP (часто ломает загрузку ресурсов)
+  html = html.replace(/<meta\b[^>]*http-equiv\s*=\s*["']Content-Security-Policy["'][^>]*>/gi, '');
+
+  // 2. Убираем integrity — иначе браузер отклонит стили, т.к. содержимое через прокси может слегка меняться
+  html = html.replace(/\bintegrity\s*=\s*["'][^"']*["']/gi, '');
+  html = html.replace(/\bcrossorigin\s*=\s*["'][^"']*["']/gi, '');
+
+  // 3. Превращаем preload-as-style в обычный stylesheet (иначе CSS не применится, если JS сломан)
+  html = html.replace(/<link\b([^>]*?)\/?>/gi, function(m, attrs){
+    if (/\brel\s*=\s*["']preload["']/i.test(attrs) && /\bas\s*=\s*["']style["']/i.test(attrs)){
+      var na = attrs
+        .replace(/\brel\s*=\s*["']preload["']/i, 'rel="stylesheet"')
+        .replace(/\bonload\s*=\s*["'][^"']*["']/i, '')
+        .replace(/\bas\s*=\s*["']style["']/i, '');
+      return '<link' + na + '>';
+    }
+    return m;
+  });
+
+  // 4. Переписываем URL в href/src/action/poster
   html = html.replace(/\b(href|src|action|poster)=(["'])([^"']*?)\2/gi, function(m, a, q, u){
     return a + '=' + q + proxify(u) + q;
   });
+
+  // 5. Переписываем srcset
   html = html.replace(/\bsrcset=(["'])([^"']*?)\1/gi, function(m, q, set){
     var fixed = set.split(',').map(function(item){
       var parts = item.trim().split(/\s+/);
@@ -394,6 +421,8 @@ function rewriteProxyHtml(html, base){
     }).join(', ');
     return 'srcset=' + q + fixed + q;
   });
+
+  // 6. Инжект base + перехват кликов
   var inject = '<base href="' + base + '"><script>(function(){' +
     'var P="' + PROXY_PATH + '";' +
     'function px(u){if(!u||u.indexOf("data:")===0||u.indexOf("javascript:")===0||u.indexOf("#")===0)return u;' +
@@ -405,8 +434,20 @@ function rewriteProxyHtml(html, base){
     'var ps=history.pushState;history.pushState=function(s,t,u){return ps.call(this,s,t,u?px(u):u)};' +
     'var rs=history.replaceState;history.replaceState=function(s,t,u){return rs.call(this,s,t,u?px(u):u)};' +
     '})();<\/script>';
+
   if (/<head([^>]*)>/i.test(html)) return html.replace(/<head([^>]*)>/i, '<head$1>' + inject);
   return inject + html;
+}
+
+// Перезапись URL внутри CSS-файлов (чтобы картинки и шрифты тоже грузились через прокси)
+function rewriteProxyCss(css, base){
+  return css.replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi, function(m, q, u){
+    if (!u || u.indexOf('data:') === 0 || u.indexOf('http') === 0 && u.indexOf('://') > 0 && u.indexOf(PROXY_PATH) === 0) return m;
+    try {
+      var abs = new URL(u, base).href;
+      return 'url(' + q + PROXY_PATH + '?url=' + encodeURIComponent(abs) + q + ')';
+    } catch(e){ return m; }
+  });
 }
 
 /* ============================================================
@@ -587,32 +628,21 @@ const server = http.createServer(async function(req, res){
     }
 
     /* === PROXY === */
-    if (p === PROXY_PATH){
-      var target = url.searchParams.get('url');
-      if (!target){ res.writeHead(400); return res.end('Missing url'); }
-      try {
-        var r = await fetchTarget(target, method, req.headers, 0);
-        var h = {};
-        for (var hk in r.headers){
-          if (!DROP.has(hk.toLowerCase())) h[hk] = r.headers[hk];
-        }
-        h['access-control-allow-origin'] = '*';
-        var ct = r.headers['content-type'] || '';
+            var ct = r.headers['content-type'] || '';
         if (ct.indexOf('text/html') >= 0){
           h['content-type'] = 'text/html; charset=utf-8';
           delete h['content-length'];
           res.writeHead(r.status, h);
           res.end(rewriteProxyHtml(r.body.toString('utf8'), target));
+        } else if (ct.indexOf('text/css') >= 0){
+          h['content-type'] = 'text/css; charset=utf-8';
+          delete h['content-length'];
+          res.writeHead(r.status, h);
+          res.end(rewriteProxyCss(r.body.toString('utf8'), target));
         } else {
           res.writeHead(r.status, h);
           res.end(r.body);
         }
-      } catch(e){
-        res.writeHead(502, { 'Content-Type':'text/plain; charset=utf-8' });
-        res.end('Proxy error: ' + e.message);
-      }
-      return;
-    }
 
     /* === STATIC === */
     var filePath = p === '/' ? '/index.html' : p;
