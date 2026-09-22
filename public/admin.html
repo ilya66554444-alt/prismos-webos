@@ -46,7 +46,12 @@ input,textarea,select{font-family:inherit;color:inherit;font-size:inherit}
 .btn.sm{padding:6px 12px;font-size:12.5px;border-radius:7px}
 .btn.lg{width:100%;padding:14px;font-size:15px}
 .login-err{color:#fca5a5;font-size:12.5px;text-align:center;min-height:18px;margin-top:8px}
-
+.auto-refresh{margin-top:10px}
+.auto-toggle{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:var(--surface);cursor:pointer;font-size:11.5px;color:var(--text2);transition:.15s;user-select:none}
+.auto-toggle:hover{background:var(--surface2)}
+.auto-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 6px var(--ok);transition:.2s}
+.auto-toggle.off .auto-dot{background:var(--text3);box-shadow:none}
+.auto-timer{margin-left:auto;font-size:10.5px;color:var(--text3);font-variant-numeric:tabular-nums}
 #panel{display:flex;height:100vh;overflow:hidden}
 .sidebar{width:280px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column}
 .sidebar-head{padding:18px 20px;border-bottom:1px solid var(--border)}
@@ -162,9 +167,16 @@ input,textarea,select{font-family:inherit;color:inherit;font-size:inherit}
 
 <div id="panel" class="hidden">
   <div class="sidebar">
-    <div class="sidebar-head">
+     <div class="sidebar-head">
       <h2>⚙️ Admin</h2>
       <div class="status"><span class="dot" id="ws-dot"></span><span id="ws-status">Подключение…</span></div>
+      <div class="auto-refresh">
+        <div class="auto-toggle" id="auto-toggle">
+          <span class="auto-dot"></span>
+          <span id="auto-label">Авто: Вкл</span>
+          <span class="auto-timer" id="auto-timer">—</span>
+        </div>
+      </div>
     </div>
     <div class="user-list" id="user-list"></div>
     <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:6px">
@@ -192,6 +204,9 @@ var liveStates = {};      // login -> last state
 var logEntries = [];
 var socket = null;
 var reconnectTimer = null;
+var autoRefresh = true;
+var refreshTimer = null;
+var lastRefresh = 0;
 
 function $(s, r){ return (r || document).querySelector(s); }
 function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
@@ -678,10 +693,61 @@ function showPanel(){
   renderTabs();
   renderContent();
   initWS();
-  // Обновляем список каждые 5 сек
+
+  // Пользователи каждые 5 сек
   setInterval(function(){ loadUsers().catch(function(){}); }, 5000);
-  // Перерисовываем sidebar для LIVE
-  setInterval(function(){ renderSidebar(); }, 3000);
+
+  // Sidebar для LIVE каждые 2 сек
+  setInterval(function(){ renderSidebar(); }, 2000);
+
+  // Обновляем счётчик времени с последнего апдейта
+  setInterval(function(){
+    var el = $('#auto-timer');
+    if (!el) return;
+    if (!lastRefresh){ el.textContent = '—'; return; }
+    var sec = Math.max(0, Math.floor((Date.now() - lastRefresh) / 1000));
+    el.textContent = sec + 'с';
+  }, 1000);
+
+  // Переключатель автообновления
+  var toggle = $('#auto-toggle');
+  if (toggle){
+    toggle.onclick = function(){
+      autoRefresh = !autoRefresh;
+      toggle.classList.toggle('off', !autoRefresh);
+      $('#auto-label').textContent = 'Авто: ' + (autoRefresh ? 'Вкл' : 'Выкл');
+      if (autoRefresh) startAutoRefresh();
+      else stopAutoRefresh();
+    };
+  }
+
+  startAutoRefresh();
+}
+
+function startAutoRefresh(){
+  stopAutoRefresh();
+  refreshTimer = setInterval(function(){
+    if (!autoRefresh) return;
+    if (!currentUser) return;
+    // В редакторе JSON автообновление ОТКЛЮЧЕНО — чтобы не стирать твои правки
+    if (currentTab === 'editor') return;
+    // Обновляем только вкладки с динамическими данными
+    if (currentTab === 'overview' || currentTab === 'live' || currentTab === 'data'){
+      var c = $('#content');
+      var st = c ? c.scrollTop : 0;
+      renderContent();
+      // Восстанавливаем скролл
+      if (c) setTimeout(function(){ c.scrollTop = st; }, 0);
+      lastRefresh = Date.now();
+      var el = $('#auto-timer');
+      if (el) el.textContent = '0с';
+    }
+  }, 3000);
+}
+
+function stopAutoRefresh(){
+  if (refreshTimer){ clearInterval(refreshTimer); refreshTimer = null; }
+  lastRefresh = 0;
 }
 
 /* ============ WIRE ============ */
